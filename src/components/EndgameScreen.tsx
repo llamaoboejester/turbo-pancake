@@ -1,8 +1,15 @@
 import { useGameStore } from '../store'
 import { calculateScore, hasValidWedding } from '../scoring'
-import type { Theme } from '../types'
-import { IconChip, ICON_NAMES } from './IconChip'
+import type { Theme, GridPosition } from '../types'
+import { GRID_BONUSES } from '../types'
+import { IconChip, ICON_NAMES, ICON_COLORS } from './IconChip'
+import { IconBar } from './IconBar'
+import { CardView } from './CardView'
+import type { Icon } from '../types'
 import styles from './EndgameScreen.module.css'
+
+const POSITIONS: GridPosition[] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+const BONUS_LABELS = { draw2: 'Draw 2', book: 'Book', coins3: '+3 Coins', none: 'Venue' }
 
 export function EndgameScreen() {
   const phase = useGameStore((s) => s.phase)
@@ -12,26 +19,87 @@ export function EndgameScreen() {
   if (phase === 'endgame_theme_select') {
     return (
       <div className={styles.screen}>
-        <h1 className={styles.title}>12 Months Are Up!</h1>
-        <p className={styles.sub}>Each player must choose their scoring theme.</p>
-        <div className={styles.themeSelectors}>
+        <div className={styles.banner}>
+          <h1 className={styles.title}>12 Months Are Up!</h1>
+          <p className={styles.sub}>Review your wedding, then choose your scoring theme.</p>
+        </div>
+
+        <div className={styles.playerPanels}>
           {([1, 2] as const).map((pid) => {
             const player = players[pid]
             if (!player.themeCard) return null
             const chosen = player.chosenTheme
 
+            function iconCounts(): Record<Icon, number> {
+              const counts: Record<Icon, number> = { whimsy: 0, edge: 0, nature: 0, tradition: 0, elegance: 0 }
+              for (const card of Object.values(player.grid)) {
+                if (card) card.icons.forEach((ic) => counts[ic]++)
+              }
+              return counts
+            }
+
             return (
-              <div key={pid} className={styles.themeSelector}>
-                <div className={styles.selectorLabel}>Player {pid}</div>
-                {chosen ? (
-                  <div className={styles.chosen}>Chose: <strong>{chosen.name}</strong></div>
-                ) : (
-                  <div className={styles.themes}>
-                    {[player.themeCard.front, player.themeCard.back].map((theme) => (
-                      <ThemeOption key={theme.id} theme={theme} onSelect={() => selectTheme(theme)} />
+              <div key={pid} className={styles.playerPanel}>
+                <div className={styles.panelHeader}>
+                  Player {pid} — 💰 {player.coins} coins
+                </div>
+
+                <IconBar counts={iconCounts()} />
+
+                <div className={styles.miniGrid}>
+                  {POSITIONS.map((pos) => {
+                    const card = player.grid[pos]
+                    const bonus = GRID_BONUSES[pos]
+                    return (
+                      <div key={pos} className={`${styles.miniCell} ${card ? styles.miniCellFilled : ''}`}>
+                        {card ? (
+                          <CardView card={card} compact />
+                        ) : (
+                          <span className={styles.miniBonus}>{BONUS_LABELS[bonus]}</span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {player.goals.length > 0 && (
+                  <div className={styles.goalsRow}>
+                    <span className={styles.goalsLabel}>Goals:</span>
+                    {player.goals.map((g) => (
+                      <span key={g.id} className={styles.goalPill}>{g.name}</span>
                     ))}
                   </div>
                 )}
+
+                <div className={styles.themeSection}>
+                  {chosen ? (
+                    <div className={styles.chosenBanner}>
+                      Theme chosen: <strong>{chosen.name}</strong>
+                      <div className={styles.chosenIcons}>
+                        {chosen.icons.map((ic, i) => (
+                          <span key={i} className={styles.iconLabel}>
+                            <IconChip icon={ic} size="sm" />
+                            <span>{ICON_NAMES[ic]}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className={styles.themePrompt}>Player {pid}: choose your scoring theme</div>
+                      <div className={styles.themeOptions}>
+                        {[player.themeCard.front, player.themeCard.back].map((theme) => (
+                          <ThemeOption
+                            key={theme.id}
+                            theme={theme}
+                            iconCounts={iconCounts()}
+                            onSelect={() => selectTheme(pid, theme)}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             )
           })}
@@ -58,8 +126,10 @@ export function EndgameScreen() {
 
   return (
     <div className={styles.screen}>
-      <h1 className={styles.title}>Final Scores</h1>
-      <div className={styles.winner}>{winner}</div>
+      <div className={styles.banner}>
+        <h1 className={styles.title}>Final Scores</h1>
+        <div className={styles.winner}>{winner}</div>
+      </div>
 
       <div className={styles.scoreCards}>
         {([1, 2] as const).map((pid) => {
@@ -69,7 +139,9 @@ export function EndgameScreen() {
 
           return (
             <div key={pid} className={styles.scoreCard}>
-              <div className={styles.scoreHeader}>Player {pid} — {player.chosenTheme?.name ?? 'No theme'}</div>
+              <div className={styles.scoreHeader}>
+                Player {pid} — {player.chosenTheme?.name ?? 'No theme'}
+              </div>
               {!valid ? (
                 <div className={styles.invalid}>No venue booked — ineligible</div>
               ) : score ? (
@@ -79,6 +151,15 @@ export function EndgameScreen() {
                     <div key={r.goal.id} className={styles.line}>
                       <span>{r.goal.name}</span>
                       <span>+{r.points}</span>
+                    </div>
+                  ))}
+                  {score.goalResults.filter((r) => !r.achieved && player.goals.find(g => g.id === r.goal.id)).length > 0 && (
+                    <div className={styles.missedLabel}>Not achieved:</div>
+                  )}
+                  {score.goalResults.filter((r) => !r.achieved).map((r) => (
+                    <div key={r.goal.id} className={`${styles.line} ${styles.missed}`}>
+                      <span>{r.goal.name}</span>
+                      <span>0</span>
                     </div>
                   ))}
                   <div className={styles.line}><span>Leftover coins ({player.coins})</span><span>+{score.coins}</span></div>
@@ -93,18 +174,26 @@ export function EndgameScreen() {
   )
 }
 
-function ThemeOption({ theme, onSelect }: { theme: Theme; onSelect: () => void }) {
+function ThemeOption({ theme, iconCounts, onSelect }: { theme: Theme; iconCounts: Record<Icon, number>; onSelect: () => void }) {
+  const [a, b] = theme.icons
+  const countA = iconCounts[a]
+  const countB = iconCounts[b]
+
   return (
     <button className={styles.themeOption} onClick={onSelect}>
       <span className={styles.themeName}>{theme.name}</span>
-      <div className={styles.themeIcons}>
-        {theme.icons.map((ic, i) => (
-          <span key={i} className={styles.iconLabel}>
-            <IconChip icon={ic} size="md" />
-            <span className={styles.iconName}>{ICON_NAMES[ic]}</span>
+      <div className={styles.themeIconRows}>
+        {([a, b] as Icon[]).map((ic) => (
+          <span key={ic} className={styles.iconLabel}>
+            <IconChip icon={ic} size="sm" />
+            <span style={{ color: ICON_COLORS[ic] }}>{ICON_NAMES[ic]}</span>
+            <span className={styles.iconCount}>×{iconCounts[ic]}</span>
           </span>
         ))}
       </div>
+      <span className={styles.themeHint}>
+        {countA + countB} theme icons booked
+      </span>
     </button>
   )
 }

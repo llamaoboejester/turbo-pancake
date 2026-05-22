@@ -81,7 +81,7 @@ export interface GameStore extends GameState {
   swapCard: (marketType: MarketType, index: number | 'blind') => void
   skipBonus: () => void
   discardFromStaging: (card: VendorCard | VenueCard) => void
-  selectTheme: (theme: Theme) => void
+  selectTheme: (playerId: 1 | 2, theme: Theme) => void
   confirmScoring: () => void
   _applyBonus: (bonus: import('./types').GridBonus, depth: number) => void
   _endTurn: () => void
@@ -350,14 +350,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }))
   },
 
-  selectTheme(theme) {
-    const { activePlayer, players } = get()
-    const player = players[activePlayer]
+  selectTheme(playerId, theme) {
+    const { players } = get()
+    const player = players[playerId]
     set((s) => ({
-      players: { ...s.players, [activePlayer]: { ...player, chosenTheme: theme } },
+      players: { ...s.players, [playerId]: { ...player, chosenTheme: theme } },
     }))
 
-    // Check if both players have chosen their theme
     const updated = get().players
     if (updated[1].chosenTheme && updated[2].chosenTheme) {
       set({ phase: 'endgame_scoring' })
