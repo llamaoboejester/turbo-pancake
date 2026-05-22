@@ -1,0 +1,41 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --c-bg: #1a1a2e;
+  --c-surface: #16213e;
+  --c-surface2: #0f3460;
+  --c-border: #2a2a4a;
+  --c-text: #e0e0e0;
+  --c-text-muted: #888;
+  --c-accent: #e94560;
+  --c-coin: #f5c518;
+  --c-active: #0f3460;
+
+  --icon-whimsy: #e91e8c;
+  --icon-edge: #7c3aed;
+  --icon-nature: #16a34a;
+  --icon-tradition: #9f1239;
+  --icon-elegance: #b45309;
+}
+
+html, body, #root {
+  height: 100%;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-size: 14px;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

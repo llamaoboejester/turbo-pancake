@@ -1,0 +1,55 @@
+.bar {
+  background: var(--c-surface2);
+  border-bottom: 1px solid var(--c-border);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+.playerTag {
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.phase {
+  color: #a78bfa;
+  font-style: italic;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  padding: 7px 14px;
+  color: var(--c-text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: #4a7aff;
+  background: #4a7aff11;
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

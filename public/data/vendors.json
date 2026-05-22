@@ -1,0 +1,37 @@
+[
+  { "id": "v_att_001", "type": "vendor", "name": "The Silk & Lace Boutique",       "category": "attire_accessories", "cost": 1, "excitement": 1, "icons": ["elegance"] },
+  { "id": "v_att_002", "type": "vendor", "name": "Bespoke Bridal Atelier",          "category": "attire_accessories", "cost": 2, "excitement": 2, "icons": ["whimsy", "elegance"] },
+  { "id": "v_att_003", "type": "vendor", "name": "The Avant-Garde Wedding Suite",   "category": "attire_accessories", "cost": 3, "excitement": 2, "icons": ["edge", "edge", "elegance"] },
+
+  { "id": "v_cer_001", "type": "vendor", "name": "Candlelit Chapel Service",        "category": "ceremony", "cost": 1, "excitement": 1, "icons": ["tradition"] },
+  { "id": "v_cer_002", "type": "vendor", "name": "Garden Arch Ceremony",            "category": "ceremony", "cost": 2, "excitement": 2, "icons": ["nature", "tradition"] },
+  { "id": "v_cer_003", "type": "vendor", "name": "Grand Cathedral Package",         "category": "ceremony", "cost": 3, "excitement": 3, "icons": ["tradition", "tradition", "elegance"] },
+
+  { "id": "v_ent_001", "type": "vendor", "name": "Acoustic Duo",                    "category": "entertainment", "cost": 1, "excitement": 1, "icons": ["whimsy"] },
+  { "id": "v_ent_002", "type": "vendor", "name": "Jazz Quartet",                    "category": "entertainment", "cost": 2, "excitement": 2, "icons": ["edge", "elegance"] },
+  { "id": "v_ent_003", "type": "vendor", "name": "Full DJ & Light Show",            "category": "entertainment", "cost": 3, "excitement": 3, "icons": ["edge", "edge", "whimsy"] },
+
+  { "id": "v_fav_001", "type": "vendor", "name": "Wildflower Seed Packets",         "category": "favors_gifts", "cost": 1, "excitement": 1, "icons": ["nature"] },
+  { "id": "v_fav_002", "type": "vendor", "name": "Custom Candle Collection",        "category": "favors_gifts", "cost": 2, "excitement": 1, "icons": ["whimsy", "elegance"] },
+  { "id": "v_fav_003", "type": "vendor", "name": "Artisan Chocolate Box Set",       "category": "favors_gifts", "cost": 3, "excitement": 2, "icons": ["tradition", "elegance", "elegance"] },
+
+  { "id": "v_flo_001", "type": "vendor", "name": "Wildflower Centerpieces",         "category": "flowers_decorations", "cost": 1, "excitement": 1, "icons": ["nature"] },
+  { "id": "v_flo_002", "type": "vendor", "name": "Romantic Rose Arch",              "category": "flowers_decorations", "cost": 2, "excitement": 2, "icons": ["whimsy", "nature"] },
+  { "id": "v_flo_003", "type": "vendor", "name": "Grand Floral Installation",       "category": "flowers_decorations", "cost": 3, "excitement": 3, "icons": ["nature", "nature", "elegance"] },
+
+  { "id": "v_foo_001", "type": "vendor", "name": "Seasonal Herb & Grain Buffet",    "category": "food_drink", "cost": 1, "excitement": 1, "icons": ["nature"] },
+  { "id": "v_foo_002", "type": "vendor", "name": "Craft Cocktail Bar",              "category": "food_drink", "cost": 2, "excitement": 2, "icons": ["edge", "whimsy"] },
+  { "id": "v_foo_003", "type": "vendor", "name": "Magical Wine-Paired Feast",       "category": "food_drink", "cost": 3, "excitement": 3, "icons": ["whimsy", "elegance", "elegance"] },
+
+  { "id": "v_pho_001", "type": "vendor", "name": "Documentary Style Shooter",       "category": "photography", "cost": 1, "excitement": 1, "icons": ["edge"] },
+  { "id": "v_pho_002", "type": "vendor", "name": "Portrait & Editorial Team",        "category": "photography", "cost": 2, "excitement": 2, "icons": ["edge", "elegance"] },
+  { "id": "v_pho_003", "type": "vendor", "name": "Full-Day Cinematic Package",       "category": "photography", "cost": 3, "excitement": 2, "icons": ["edge", "edge", "tradition"] },
+
+  { "id": "v_sta_001", "type": "vendor", "name": "Digital RSVP Cards",              "category": "stationery", "cost": 1, "excitement": 1, "icons": ["edge"] },
+  { "id": "v_sta_002", "type": "vendor", "name": "Letterpress Invitation Suite",    "category": "stationery", "cost": 2, "excitement": 1, "icons": ["tradition", "elegance"] },
+  { "id": "v_sta_003", "type": "vendor", "name": "Illustrated Keepsake Program",    "category": "stationery", "cost": 3, "excitement": 2, "icons": ["whimsy", "nature", "elegance"] },
+
+  { "id": "v_tra_001", "type": "vendor", "name": "Vintage Bicycle Escort",          "category": "transportation", "cost": 1, "excitement": 1, "icons": ["whimsy"] },
+  { "id": "v_tra_002", "type": "vendor", "name": "Classic Rolls-Royce",             "category": "transportation", "cost": 2, "excitement": 2, "icons": ["tradition", "elegance"] },
+  { "id": "v_tra_003", "type": "vendor", "name": "Horse-Drawn Carriage Procession", "category": "transportation", "cost": 3, "excitement": 3, "icons": ["whimsy", "tradition", "elegance"] }
+]

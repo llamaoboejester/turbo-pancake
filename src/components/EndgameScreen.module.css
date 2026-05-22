@@ -1,0 +1,125 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 40px 24px;
+  min-height: 100%;
+  background: var(--c-bg);
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.sub {
+  color: var(--c-text-muted);
+}
+
+.winner {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--c-coin);
+}
+
+.themeSelectors {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.themeSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.selectorLabel {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.chosen {
+  font-size: 1.1rem;
+  color: var(--c-coin);
+}
+
+.themes {
+  display: flex;
+  gap: 12px;
+}
+
+.themeOption {
+  background: var(--c-surface);
+  border: 2px solid var(--c-border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+  align-items: center;
+}
+
+.themeOption:hover {
+  border-color: var(--c-coin);
+  transform: translateY(-2px);
+}
+
+.themeName { font-size: 1.1rem; font-weight: 700; }
+
+.themeIcons { display: flex; gap: 6px; align-items: center; }
+
+.iconLabel { display: inline-flex; }
+
+.scoreCards {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 700px;
+}
+
+.scoreCard {
+  flex: 1;
+  min-width: 250px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scoreHeader {
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--c-border);
+  padding-bottom: 8px;
+}
+
+.invalid { color: var(--c-accent); }
+
+.line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+.line span:last-child { color: var(--c-text); font-weight: 600; }
+
+.total {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--c-coin);
+  border-top: 1px solid var(--c-border);
+  padding-top: 8px;
+  text-align: right;
+}
