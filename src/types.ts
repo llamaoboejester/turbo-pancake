@@ -30,13 +30,37 @@ export interface VenueCard {
   icons: Icon[]
 }
 
+export type ScoringFormulaType =
+  | 'category_count'
+  | 'trio_set'
+  | 'combo_negative'
+  | 'row_col_same_category'
+  | 'corners_same_category'
+  | 'line_same_cost'
+  | 'line_same_excitement'
+  | 'depth_category'
+  | 'breadth_8_categories'
+  | 'all_same_category'
+  | 'all_same_excitement'
+  | 'all_same_cost'
+  | 'even_odd_excitement'
+  | 'even_odd_cost'
+  | 'missing_theme_elements'
+  | 'empty_spaces'
+  | 'fewer_coins_opponent'
+  | 'minimalist'
+
 export interface ScoringCard {
   id: string
   type: 'scoring'
   name: string
-  category: VendorCategory
+  formulaType: ScoringFormulaType
   frontFormula: string
   backIcon: Icon
+  category?: VendorCategory
+  categories?: VendorCategory[]
+  positiveCategory?: VendorCategory
+  negativeCategories?: VendorCategory[]
 }
 
 export interface Theme {
@@ -78,6 +102,8 @@ export interface PlayerState {
   stagingVendors: VendorCard[]
   stagingVenues: VenueCard[]
   scoringCards: ScoringCard[]
+  scoringFlips: Record<string, 'front' | 'back'>
+  bonusIcons: Icon[]
   themeCard: ThemeCard | null
   chosenTheme: Theme | null
 }
@@ -94,10 +120,10 @@ export type GamePhase =
   | 'action_select'
   | 'taking_cards'
   | 'booking'
-  | 'swapping'
   | 'bonus_draw2'
   | 'bonus_book'
-  | 'venue_bonus_take'
+  | 'venue_bonus_icon'
+  | 'scoring_flip_choice'
   | 'midgame_theme_select'
   | 'endgame_scoring'
 
@@ -115,7 +141,7 @@ export interface GameState {
 export type PendingAction =
   | { type: 'take2'; taken: AnyCard[] }
   | { type: 'book'; card: VendorCard | VenueCard | null }
-  | { type: 'swap'; replacePosition: GridPosition | null }
   | { type: 'bonus_draw2'; taken: AnyCard[] }
   | { type: 'bonus_book'; card: VendorCard | VenueCard | null }
-  | { type: 'venue_bonus_take'; taken: AnyCard[] }
+  | { type: 'venue_bonus_icon' }
+  | { type: 'scoring_flip_choice'; card: ScoringCard; resumePhase: 'taking_cards' | 'bonus_draw2'; takenSoFar: AnyCard[] }

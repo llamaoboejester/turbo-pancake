@@ -15,7 +15,6 @@ export function ActionBar() {
   const hasVendorToBook = player.stagingVendors.length > 0
   const hasVenueToBook = player.stagingVenues.length > 0 && !hasBookedVenue
   const canBook = hasVendorToBook || hasVenueToBook
-  const hasBookedVendor = Object.values(player.grid).some((c) => c?.type === 'vendor')
 
   function phaseLabel() {
     switch (phase) {
@@ -36,17 +35,10 @@ export function ActionBar() {
         const taken = pendingAction && 'taken' in pendingAction ? pendingAction.taken.length : 0
         return `Bonus Draw 2 — pick ${2 - taken} more`
       }
-      case 'venue_bonus_take': {
-        const taken = pendingAction && 'taken' in pendingAction ? pendingAction.taken.length : 0
-        return `Venue bonus — take ${2 - taken} more cards`
-      }
+      case 'venue_bonus_icon': return 'Venue bonus — choose a theme element'
+      case 'scoring_flip_choice': return 'Choose a side for your scoring card — no take-backs'
       case 'midgame_theme_select':
         return 'End of Round 6 — each player locks in their theme'
-      case 'swapping': {
-        const pa = pendingAction as { type: 'swap'; replacePosition: unknown } | null
-        if (!pa?.replacePosition) return 'Swap: click a booked vendor in your grid to replace'
-        return 'Swap: pick a vendor from the market'
-      }
       default: return ''
     }
   }
@@ -64,15 +56,15 @@ export function ActionBar() {
         <div className={styles.actions}>
           <button
             className={styles.btn}
-            onClick={() => selectAction('take2')}
-          >
-            Take 2 Cards
-          </button>
-          <button
-            className={styles.btn}
             onClick={() => selectAction('gain3coins')}
           >
             💰 Gain 3 Coins
+          </button>
+          <button
+            className={styles.btn}
+            onClick={() => selectAction('take2')}
+          >
+            Take 2 Cards
           </button>
           <button
             className={styles.btn}
@@ -80,13 +72,6 @@ export function ActionBar() {
             onClick={() => selectAction('book')}
           >
             Book a Card
-          </button>
-          <button
-            className={styles.btn}
-            disabled={!hasBookedVendor}
-            onClick={() => selectAction('swap')}
-          >
-            Swap
           </button>
         </div>
       )}

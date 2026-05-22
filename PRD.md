@@ -74,7 +74,7 @@ All game content is defined in JSON files. The app loads these at startup. Card 
 - `excitement`: integer, stored explicitly (not derived)
 - `icons`: array of exactly `cost` icon keys, always in WENTL order, repetition allowed
 
-**108 total vendors — 12 per category.**
+**54 stub vendors — 6 per category. Full game targets 108 (12 per category).**
 
 ### 5.2 Venue Schema
 
@@ -93,29 +93,27 @@ All game content is defined in JSON files. The app loads these at startup. Card 
 - `icons`: array of exactly `cost` icon keys, always in WENTL order, repetition allowed
 - Venues have no category
 
+**12 stub venues.**
+
 ### 5.3 Scoring Card Schema
 
-Scoring cards replace goal cards. They are drawn from the scoring card market during the second half of the game (rounds 7–12). Each card has a formula side (front) and a theme icon side (back). At endgame, the player chooses which side to use for each card they hold.
+Scoring cards are drawn from the scoring card market during the second half (rounds 7–12). Each card has a formula side (front) and a theme icon side (back). When a player takes a scoring card, they must **immediately and permanently** choose which side to use — Front or Back. This choice cannot be changed.
 
 ```json
 {
   "id": "score_001",
+  "type": "scoring",
   "name": "Indulged",
   "category": "food_drink",
-  "front_formula": "5 pts per booked Food and Drink vendor, max 15",
-  "back_icon": "whimsy"
+  "frontFormula": "5 pts per Food & Drink vendor booked, max 15",
+  "backIcon": "whimsy"
 }
 ```
 
-- `category`: the vendor category this formula evaluates (see Section 6.1)
-- `front_formula`: human-readable description of the scoring formula (for display only)
-- `back_icon`: one of the 5 WENTL icon keys — when flipped, this icon is added to the player's icon frequency count for theme score evaluation
+- `frontFormula`: human-readable description of the scoring formula (display only)
+- `backIcon`: one of the 5 WENTL icon keys — if chosen, this icon is added immediately and permanently to the player's icon histogram
 
-**Scoring logic for front side:** 5 points per booked vendor of the matching category, maximum 15 points.
-
-**Scoring logic for back side:** The card's `back_icon` is counted as an additional icon occurrence in the player's icon pool when evaluating the theme score rubric (Section 15.4). It does not directly award points — it changes the icon frequency distribution.
-
-**9 total scoring cards — one per vendor category.**
+**30 total scoring cards.** Back icons are distributed evenly: exactly 6 cards per WENTL icon. See Section 6.4 for the full list.
 
 ### 5.4 Theme Card Schema
 
@@ -182,23 +180,88 @@ Theme cards are physical double-sided cards. Each card has a front theme and a b
 | 4 | Contemporary (E+T) | Rustic (N+T) | Tradition |
 | 5 | Garden (N+L) | Classic (T+L) | Elegance |
 
-### 6.4 All 9 Scoring Cards
+### 6.4 All 30 Scoring Cards
 
-One per vendor category. All share the same formula structure (5 pts/booked vendor of matching category, max 15).
+Back icons are distributed exactly 6 per WENTL icon across all 30 cards.
+
+#### Category Cards (9) — 5 pts per booked vendor of matching category, max 15
 
 | Name | Category | Back Icon |
 |------|----------|-----------|
-| Indulged | Food and Drink | (assigned in data) |
-| Captivated | Entertainment | (assigned in data) |
-| Moved | Ceremony | (assigned in data) |
-| Spoiled | Transportation | (assigned in data) |
-| Admired | Photography | (assigned in data) |
-| Impressed | Attire and Accessories | (assigned in data) |
-| Amazed | Flowers and Decorations | (assigned in data) |
-| Honored | Stationery | (assigned in data) |
-| Pampered | Favors and Gifts | (assigned in data) |
+| Indulged | Food and Drink | Whimsy |
+| Captivated | Entertainment | Edge |
+| Moved | Ceremony | Nature |
+| Spoiled | Transportation | Tradition |
+| Admired | Photography | Elegance |
+| Impressed | Attire and Accessories | Whimsy |
+| Amazed | Flowers and Decorations | Nature |
+| Honored | Stationery | Tradition |
+| Pampered | Favors and Gifts | Elegance |
 
-Back icons should be distributed across the 5 WENTL icons (roughly 1–2 per icon).
+#### Trio Set Cards (3) — 10 pts per complete set of all 3 categories
+
+| Name | Categories | Back Icon |
+|------|------------|-----------|
+| The Look | Attire, Flowers & Decorations, Photography | Whimsy |
+| The Party | Entertainment, Food & Drink, Favors & Gifts | Edge |
+| The Logistics | Ceremony, Stationery, Transportation | Tradition |
+
+A complete set = at least 1 booked vendor from each of the 3 categories. Score 10 pts per complete set (max 2 sets = 20 pts, since the venue occupies the center space).
+
+#### Combo / Negative Cards (3) — per booked vendor of the listed category
+
+| Name | Formula | Back Icon |
+|------|---------|-----------|
+| The Quiet Witness | +5/Photography, −3/Entertainment, −3/Ceremony | Nature |
+| The Indulgent Table | +5/Food & Drink, −3/Attire & Accessories, −3/Stationery | Whimsy |
+| The Grand Departure | +5/Transportation, −3/Flowers & Decorations, −3/Favors & Gifts | Elegance |
+
+Points (positive or negative) are applied per booked vendor. Example: 3 Ceremony vendors with The Quiet Witness = −9 pts.
+
+#### Grid / Spatial Cards (4)
+
+| Name | Formula | Back Icon |
+|------|---------|-----------|
+| The Collection | 15 pts if 3 booked vendors in the same category occupy a complete row or column | Nature |
+| Cornerstone | 20 pts if all 4 corner spaces (1, 3, 7, 9) contain vendors of the same category | Tradition |
+| Fixed Budget | 10 pts if 3 booked vendors with the same cost occupy a complete row, column, or diagonal | Tradition |
+| Consistent | 10 pts if 3 booked vendors with the same excitement occupy a complete row, column, or diagonal | Elegance |
+
+#### Breadth / Depth Cards (3)
+
+| Name | Formula | Back Icon |
+|------|---------|-----------|
+| The Specialist | 5 pts per vendor category in which you have 2 or more booked vendors | Edge |
+| The Curator | 25 pts if your 8 booked vendors represent 8 different categories | Whimsy |
+| The Obsession | 35 pts if all 8 booked vendors belong to the same category | Edge |
+
+#### All-Same Cards (2)
+
+| Name | Formula | Back Icon |
+|------|---------|-----------|
+| Uniform | 25 pts if all 8 booked vendors have the same excitement value | Nature |
+| The Deal | 25 pts if all 8 booked vendors have the same cost | Whimsy |
+
+#### Even / Odd Cards (2)
+
+| Name | Formula | Back Icon |
+|------|---------|-----------|
+| In Harmony | +7 pts if your total excitement (all booked cards) is even; +3 pts if odd | Elegance |
+| The Economist | +7 pts if your total coins spent booking is even; +3 pts if odd | Edge |
+
+#### Theme Card (1)
+
+| Name | Formula | Back Icon |
+|------|---------|-----------|
+| The Purist | 5 pts per WENTL icon that does not appear on any of your booked cards | Nature |
+
+#### Catch-up Cards (3)
+
+| Name | Formula | Back Icon |
+|------|---------|-----------|
+| Less is More | 5 pts per empty grid space at endgame | Tradition |
+| The Thrifty Couple | +10 pts if you spent fewer total coins booking than your opponent | Edge |
+| The Minimalist | +15 pts if your total coins spent booking is 10 or less | Elegance |
 
 ---
 
@@ -212,7 +275,7 @@ Shuffle all vendors into one vendor deck. Shuffle all venues into one venue deck
 
 At game start:
 
-- **Vendor market** — 5 visible cards + remaining vendor deck
+- **Vendor market** — 6 visible cards + remaining vendor deck
 - **Venue market** — 3 visible cards + remaining venue deck
 
 The scoring card deck is held in reserve; it is not dealt until the second-half market opens (see Section 8.3).
@@ -233,7 +296,7 @@ Shuffle the 5 theme cards and deal one to each player.
 
 Each market has a set number of visible slots. Slot 1 is the oldest position; the last slot is the newest.
 
-- **Vendor market:** 5 visible slots
+- **Vendor market:** 6 visible slots
 - **Venue market / Scoring card market:** 3 visible slots
 
 ### 8.1 Taking Cards
@@ -242,7 +305,7 @@ Players may take from:
 - Any visible card in any currently active market (free selection)
 - The top card of any active market's deck, face-down and unseen (blind draw)
 
-Blind-drawn cards go directly to the player's staging area (or scoring area, for scoring cards) and do not pass through the visible market.
+Blind-drawn cards go directly to the player's staging area (or scoring card area, for scoring cards) and do not pass through the visible market.
 
 ### 8.2 End-of-Turn Replenishment
 
@@ -256,7 +319,7 @@ After a player's turn fully resolves (including all bonus actions):
 The game is divided into two phases of 6 rounds each.
 
 **First Half (Rounds 1–6):**
-- Active markets: Vendor market (5 slots) + Venue market (3 slots)
+- Active markets: Vendor market (6 slots) + Venue market (3 slots)
 
 **Mid-game Break (between Rounds 6 and 7):**
 - Both players select their theme before Round 7 begins (see Section 14)
@@ -264,12 +327,12 @@ The game is divided into two phases of 6 rounds each.
 - The scoring card market opens with 3 visible scoring cards dealt from the scoring card deck
 
 **Second Half (Rounds 7–12):**
-- Active markets: Vendor market (5 slots) + Scoring card market (3 slots)
-- Venue cards can no longer be taken from any market (the venue deck is spent)
+- Active markets: Vendor market (6 slots) + Scoring card market (3 slots)
+- Venue cards can no longer be taken from any market
 
 ### 8.4 Venue Market Freeze
 
-Once both players have booked a venue, the venue market stops replenishing even during the first half. Cards that leave it are not replaced. (The market may go partially or fully empty.)
+Once both players have booked a venue, the venue market stops replenishing even during the first half. Cards that leave it are not replaced.
 
 ### 8.5 End-of-Round Discard
 
@@ -287,13 +350,19 @@ This discard happens to all currently active markets.
 
 Players alternate turns. Player 1 goes first. Each player takes exactly 12 turns. The game lasts 24 total turns (12 rounds of 2 turns each), plus one mid-game break between rounds 6 and 7.
 
-On each turn, the active player chooses **exactly one** of the following four actions.
+On each turn, the active player chooses **exactly one** of the following three actions.
 
 ---
 
 ## 10. Actions
 
-### 10.1 Take 2 Cards
+Actions are presented in this order: Gain 3 Coins, Take 2 Cards, Book.
+
+### 10.1 Gain 3 Coins
+
+Player gains 3 coins from the supply.
+
+### 10.2 Take 2 Cards
 
 Take any 2 cards from the currently active public markets. Each card may independently be:
 - A visible card from any active market slot
@@ -304,13 +373,17 @@ The 2 cards may be from the same or different markets.
 **Restrictions:**
 - A player who has already booked a venue may not take additional venue cards
 - Venue cards cannot be taken at all during the second half (venue market is closed)
-- A taken scoring card goes directly to the player's scoring card area (above the grid), not staging
+- Vendor and venue cards taken go to the player's staging area
+- When a scoring card is taken, the player must immediately choose Front or Back before continuing (see Section 10.2.1)
 
-Vendor and venue cards taken go to the player's staging area.
+#### 10.2.1 Scoring Card Flip Choice
 
-### 10.2 Gain 3 Coins
+When a player takes a scoring card (visible or blind), the take action pauses immediately. The player must choose:
 
-Player gains 3 coins from the supply.
+- **Front** — the card's formula will be evaluated at endgame for direct points
+- **Back** — the card's `backIcon` is added immediately and permanently to the player's icon histogram; it participates in theme score rubric evaluation from this point forward
+
+This choice is permanent. No take-backs. After the choice, the take action resumes if cards remain to be taken.
 
 ### 10.3 Book
 
@@ -323,25 +396,7 @@ Player books one card from their staging area into their 3×3 grid.
 
 After a successful booking, the player gains the location bonus for that grid space (see Section 11.2).
 
-**Venue booking bonus:** When a player books a venue, they immediately gain both of the following, in addition to any space bonus:
-- Take 2 cards (same rules as the Take 2 action — any active market, visible or blind)
-- Gain 3 coins
-
-The venue booking bonus is resolved before the space bonus.
-
-### 10.4 Swap
-
-Player takes one vendor card directly from a public market (visible or blind) and immediately replaces an already-booked vendor in their grid.
-
-**Requirements:**
-- Pay the new card's full cost
-- The card being replaced must be a vendor (venues may not be swapped)
-- The incoming card must be a vendor
-
-**Effects:**
-- Replaced vendor is discarded (original cost not refunded)
-- No location bonus is granted (it was already granted when the space was originally booked)
-- The new vendor occupies the same grid space
+**Venue booking:** When a player books a venue into Space 5, they immediately receive the Space 5 bonus: choose any 1 of the 5 WENTL icons to add permanently to their icon histogram. This resolves before any further bonus chaining.
 
 ---
 
@@ -367,7 +422,7 @@ Space 5 (center) is the venue slot. All other spaces are vendor slots.
 | 2 | Top-center | Book |
 | 3 | Top-right | Gain 3 Coins |
 | 4 | Middle-left | Book |
-| 5 | Center | Take 2 + Gain 3 Coins (venue booking) |
+| 5 | Center | Choose 1 theme element (venue booking only) |
 | 6 | Middle-right | Book |
 | 7 | Bottom-left | Gain 3 Coins |
 | 8 | Bottom-center | Book |
@@ -383,11 +438,11 @@ Space 5 (center) is the venue slot. All other spaces are vendor slots.
 
 **Draw 2:** Take any 2 cards from the currently active markets, same rules as the Take 2 Cards action (visible or blind, any active market).
 
-**Book:** Gain one additional Book action. The player must still pay full cost for the card booked. This bonus Book action may trigger another bonus if the new card lands on a bonus Book space (chains are allowed). Bonus Book actions may be used to book vendors or venues.
+**Book:** Gain one additional Book action. The player must still pay full cost for the card booked. This bonus Book action may trigger another bonus if the new card lands on a Book space (chains are allowed).
 
 **Gain 3 Coins:** Player gains 3 coins.
 
-**Take 2 + Gain 3 Coins (Space 5 only):** When a venue is booked in Space 5, the player immediately takes 2 cards from the active markets and gains 3 coins. This resolves before any further bonus chaining.
+**Choose 1 theme element (Space 5 only):** When a venue is booked in Space 5, the player immediately selects any 1 of the 5 WENTL icons. That icon is added permanently to their icon histogram and counts toward the theme score rubric from that point forward.
 
 ---
 
@@ -416,9 +471,8 @@ Scoring cards may not be discarded.
 
 - A player may hold at most 2 unbooked venues at once
 - A player may only book one venue (Space 5)
-- When a player books a venue: all remaining unbooked venues in their staging area are discarded, yielding 1 coin each; the venue booking bonus resolves immediately (Take 2 + Gain 3 coins)
+- When a player books a venue: all remaining unbooked venues in their staging area are discarded, yielding 1 coin each; the Space 5 bonus (choose 1 theme element) resolves immediately
 - Once a venue is booked, the player may not acquire additional venue cards
-- Venues may not be swapped out of the grid
 
 ---
 
@@ -432,11 +486,11 @@ After both players complete their 6th turn (end of Round 6), the mid-game break 
 
 The game pauses on the same screen — no navigation. Instead of showing action buttons, the UI presents each player's theme card options. Each player selects one of their two themes. Both players must commit before the game continues.
 
-The unchosen theme is discarded. The chosen theme is locked for the rest of the game and displayed prominently above the player's grid alongside the theme scoring rubric (see Section 15.4).
+The unchosen theme is discarded. The chosen theme is locked for the rest of the game and displayed prominently alongside the live theme scoring rubric.
 
 ### 15.3 Visual During Mid-game Break
 
-Players should see their full board (grid, icon bar, staging area, coins) to inform their choice. The theme selection UI is inline — above the action area.
+Players should see their full board (grid, icon histogram, staging area, coins) to inform their choice. The theme selection UI is inline — displayed to the right of the icon histogram.
 
 ---
 
@@ -450,41 +504,40 @@ The game ends after both players have completed their 12th turn (turn 24 total).
 
 A player must have a booked venue to be eligible to win. A player without a booked venue cannot win regardless of score.
 
-### 16.3 Scoring Card Choices
+### 16.3 Scoring Card Evaluation
 
-Before totaling scores, each player independently decides, for each scoring card they hold: use the **front** (category formula) or the **back** (icon, added to icon pool for theme evaluation). These choices are made at the scoring screen.
+Scoring card flip choices are made at the time of acquisition (see Section 10.2.1), not at endgame. At endgame, each scoring card is evaluated using whichever side was chosen:
 
-If a player uses the back side of a scoring card, that card's `back_icon` is added to their icon frequency count as if it were an additional booked card with that single icon. It participates in the theme score rubric evaluation (Section 16.4) but grants no direct points.
+- **Front:** evaluate the formula against the player's final grid (see Section 6.4 for all formulas)
+- **Back:** the icon was already added to the histogram at acquisition time; the card contributes no additional direct points at endgame
 
 ### 16.4 Theme Score Rubric
 
-The theme score is always evaluated against the player's chosen theme using icon frequency counts across all booked cards (vendors + venue) plus any flipped scoring cards. These tiers are not cards — they are fixed rules always applied at endgame. Multiple tiers can be achieved simultaneously.
+The theme score is evaluated against the player's chosen theme using icon frequency counts across: all booked cards (vendors + venue icons) + any back-side scoring card icons + any venue bonus icon chosen at booking.
 
-| Tier | Condition | Points |
-|------|-----------|--------|
-| Subtle | At least one of your two chosen theme icons is tied for most frequent (nothing else beats it) | 10 |
-| Matched | Both of your chosen theme icons appear the same number of times (non-zero) | 10 |
-| Thematic | Both of your chosen theme icons are tied for most frequent (nothing else beats them) | 20 |
-| Balanced | All 5 icons appear the same number of times across all booked cards | 15 |
-| Unforgettable | Only your chosen theme's icons appear across all booked cards (no other icons present) | 30 |
+Tiers are **exclusive** — only the highest qualifying tier scores. Evaluation order: Unforgettable → Balanced → Thematic → Subtle. Stop at the first match. **Matched** is an independent bonus evaluated separately for all players.
 
-"Tied for most frequent" means nothing beats it — ties are acceptable.
+| Tier | Condition | Points | Type |
+|------|-----------|--------|------|
+| Unforgettable | Only your 2 theme icons appear across all sources; both must be present | 30 | Exclusive |
+| Balanced | All 5 icons appear the same number of times (non-zero) | 20 | Exclusive |
+| Thematic | Both theme icons are ≥ every non-theme icon (ties allowed); at least one non-theme icon present | 20 | Exclusive |
+| Subtle | Exactly one of your theme icons is ≥ every non-theme icon; the other is not | 10 | Exclusive |
+| Matched | Both theme icons appear the same number of times (non-zero) | +5 | Bonus (everyone checks) |
 
 ### 16.5 Final Score Formula
 
 ```
 Final Score =
   Excitement total (sum of excitement on all booked cards)
-  + Theme score (sum of achieved rubric tiers, Section 16.4)
-  + Scoring cards (sum of achieved front-side formulas for non-flipped cards)
+  + Theme score (highest exclusive tier + Matched bonus if applicable)
+  + Scoring cards (sum of all front-side formulas for cards kept on front)
   + Tableau completion bonus (15 pts if all 9 grid spaces are filled)
   + Leftover coins (1 pt each)
-  + Leftover unbooked cards (1 pt each — counts vendors and venues still in staging)
+  + Leftover unbooked cards (1 pt each — vendors and venues in staging)
 ```
 
-The player with the higher final score wins. Both players score independently — there is no catch-up mechanism.
-
-Score is not shown during the game. It is revealed only on the endgame scoring screen.
+The player with the higher final score wins. Score is not shown during the game — revealed only on the endgame scoring screen.
 
 ---
 
@@ -497,11 +550,11 @@ Single-screen application. No page navigation. All game state visible at all tim
 Layout regions:
 
 - **Top bar:** current player indicator, turn/round number, phase, action buttons
-- **Markets row:** active markets shown with all visible card slots and a deck indicator (face-down card count); during second half, venue market is replaced by scoring card market
+- **Markets row:** active markets shown with all visible card slots and a deck indicator; during second half, venue market is replaced by scoring card market
 - **Player boards:** displayed side-by-side, each containing:
-  - **Above grid:** chosen theme name + icon pair; theme scoring rubric summary; held scoring cards (shown after mid-game commit only)
+  - **Icon histogram** — segmented vertical bar graph, one bar per icon in WENTL order
+  - **To the right of histogram:** chosen theme name + rubric pills (live, second half only); theme card options (first half); theme commit UI (mid-game break); flip choice panel (when taking a scoring card); venue icon selection (when booking a venue)
   - **3×3 grid** with space labels/bonuses visible on empty spaces
-  - **Icon frequency bar** — segmented vertical bar graph, one bar per icon in WENTL order, filling from the bottom
   - **Below grid (staging):** unbooked vendors and unbooked venues
   - Coin count and remaining turns
 
@@ -516,18 +569,23 @@ Each card must display:
 - Cost (vendors and venues)
 - Excitement value (vendors and venues)
 - Icons (rendered as solid colored circles in WENTL order — no text labels)
-- For scoring cards: formula text on front, icon circle on back
+- For scoring cards: formula text on front; icon circle + name on back
 
-### 17.3 Icon Frequency Display
+### 17.3 Icon Histogram
 
-Icon frequency is displayed as a segmented vertical bar graph (not numbers):
+Icon frequency is displayed as a segmented vertical bar graph:
 
 - One bar per WENTL icon (5 bars)
 - Each bar is divided into segments; filled segments represent the count
 - Bars fill from the bottom
 - Each bar is labeled with a small colored dot matching the icon color (no text)
+- Includes icons from: booked cards, back-side scoring cards, and any venue bonus icon
 
-### 17.4 Action UI
+### 17.4 Live Rubric Pills
+
+During the second half (after theme commit), the theme rubric is displayed as pills next to the histogram. Each pill shows the tier name and point value. Pills are highlighted when the player currently meets the criteria. Tooltips explain each tier's condition.
+
+### 17.5 Action UI
 
 Use click-to-select + click-to-confirm interaction:
 
@@ -538,14 +596,14 @@ Use click-to-select + click-to-confirm interaction:
 
 No drag and drop.
 
-### 17.5 State Visibility
+### 17.6 State Visibility
 
 Always display for each player:
 
 - Coins
 - Remaining turns
-- Icon frequency bar (booked cards only)
-- Chosen theme (after mid-game commit) or both theme options (before commit)
+- Icon histogram (all sources: booked cards + scoring card backs + venue bonus icon)
+- Both theme options (before mid-game commit) or chosen theme (after commit)
 
 Score is not displayed during the game.
 
@@ -559,14 +617,13 @@ Enforced rules:
 
 - Hand limits (vendor ≤ 5, venue ≤ 2)
 - Legal grid placement (venue → Space 5 only; vendors → non-center only; target must be empty)
-- Cost payment (cannot book/swap without sufficient coins)
+- Cost payment (cannot book without sufficient coins)
 - Venue acquisition restriction (no new venues after booking one; no venues in second half)
-- Venue swap restriction (cannot swap a venue out of the grid)
-- Swap target restriction (replacement must be a vendor)
+- Scoring card flip choice is immediate and permanent — no changes after selection
 - Market replenishment timing (end-of-turn replenish, end-of-round river discard)
 - Market availability (venue market only in first half; scoring card market only in second half)
 - Blind draw from empty deck must be disabled if deck is empty
-- Turn structure (exactly one action per turn, except chained bonus Book actions and venue booking bonus)
+- Turn structure (exactly one action per turn, except chained bonus Book actions and venue bonus)
 - Mid-game break: both players must commit to a theme before Round 7 begins
 - Endgame: venue required to win
 
@@ -574,26 +631,10 @@ Enforced rules:
 
 ## 19. Stub Data
 
-The JSON data files ship with a small number of stub cards sufficient to run and playtest the game. The JSON schema must exactly match the specs in Section 5 so that real card data can be substituted by providing card images to an AI vision tool and generating the full dataset.
+JSON data files ship with stub cards sufficient to run and playtest the game. The JSON schema must exactly match the specs in Section 5.
 
-Stub counts (minimum):
-- 3 vendors per category (27 total)
-- 5 venues
-- All 9 scoring cards
-- All 5 theme cards (all 10 themes)
-
----
-
-## 20. Out of Scope (Future)
-
-- Venue special effects
-- Solo mode
-- AI opponent
-- Networking / multiplayer
-- Animations
-- Market coin incentives (placing coins on passed cards)
-- Persistent saves
-- Replay system
-- Mobile support
-- Deck customization
-- Card filtering or search
+Stub counts:
+- 54 vendors (6 per category)
+- 12 venues
+- 30 scoring cards (full set per Section 6.4)
+- 5 theme cards (all 10 themes)

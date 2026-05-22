@@ -7,7 +7,6 @@
 }
 
 .market {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -29,13 +28,14 @@
   align-items: flex-start;
 }
 
-.slot { flex: 1; }
+.slot { flex: none; }
 
 .empty {
   background: var(--c-bg);
   border: 1px dashed var(--c-border);
   border-radius: 8px;
   height: 100px;
+  width: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -49,11 +49,22 @@
   border: 1px solid var(--c-border);
   border-radius: 8px;
   padding: 6px 10px;
-  font-size: 13px;
-  color: var(--c-text);
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.deckIcon { font-size: 22px; line-height: 1; }
+
+.deckLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--c-text-muted);
   white-space: nowrap;
 }
 
 .blindBtn:hover:not(:disabled) { border-color: #4a7aff; }
+.blindBtn:hover:not(:disabled) .deckLabel { color: #4a7aff; }
 .blindBtn:disabled { opacity: 0.35; cursor: not-allowed; }

@@ -49,6 +49,17 @@
 
 .skipBtn:hover { background: #f5c51844; }
 
+.infoRow {
+  display: flex;
+  gap: 75px;
+  align-items: flex-start;
+}
+
+.infoPanel {
+  flex: 1;
+  min-width: 0;
+}
+
 .themeSelectPanel {
   display: flex;
   flex-direction: column;
@@ -161,21 +172,6 @@
 
 .cell.canBook:hover { background: #4a7aff22; }
 
-.cell.canSwap {
-  border-color: var(--c-accent);
-  border-style: solid;
-  cursor: pointer;
-  background: #e9456011;
-}
-
-.cell.canSwap:hover { background: #e9456022; }
-
-.cell.swapSelected {
-  border-color: var(--c-coin);
-  border-style: solid;
-  background: #f5c51811;
-}
-
 .cell.filled { border-style: solid; border-color: var(--c-border); }
 
 .bonusLabel {
@@ -220,12 +216,113 @@
   color: var(--c-text-muted);
 }
 
+.rubricActive {
+  background: #4a7aff22;
+  border-color: #4a7aff88;
+  color: #4a7aff;
+  font-weight: 700;
+}
+
+.rubricBonus {
+  background: #f5c51822;
+  border-color: var(--c-coin);
+  color: var(--c-coin);
+  font-weight: 700;
+}
+
+.rubricTotal {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-coin);
+}
+
 .scoringCards {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  gap: 4px;
   padding-top: 4px;
   border-top: 1px solid var(--c-border);
+}
+
+.scoringCardItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.scoringCardName {
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.scoringCardSide {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--c-text-muted);
+}
+
+.flipPanel {
+  background: #4a7aff11;
+  border: 1px solid #4a7aff44;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flipPanelTitle {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #4a7aff;
+}
+
+.flipPanelName {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.flipOptions {
+  display: flex;
+  gap: 8px;
+}
+
+.flipOption {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.1s;
+}
+
+.flipFront:hover { border-color: #4a7aff; background: #4a7aff11; }
+
+.flipBack:hover { border-color: var(--c-coin); background: #f5c51811; }
+
+.flipOptionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--c-text-muted);
+}
+
+.flipOptionDesc {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .staging { display: flex; flex-direction: column; gap: 8px; }

@@ -8,5 +8,7 @@
   { "id": "venue_007", "type": "venue", "name": "The Crystal Loft",              "cost": 3, "excitement": 3, "icons": ["edge", "edge", "elegance"] },
   { "id": "venue_008", "type": "venue", "name": "Meadowbrook Barn",              "cost": 2, "excitement": 2, "icons": ["nature", "tradition"] },
   { "id": "venue_009", "type": "venue", "name": "The Velvet Underground Lounge", "cost": 3, "excitement": 2, "icons": ["whimsy", "edge", "nature"] },
-  { "id": "venue_010", "type": "venue", "name": "Sunset Cliffside Terrace",      "cost": 4, "excitement": 3, "icons": ["whimsy", "nature", "nature", "elegance"] }
+  { "id": "venue_010", "type": "venue", "name": "Sunset Cliffside Terrace",      "cost": 4, "excitement": 3, "icons": ["whimsy", "nature", "nature", "elegance"] },
+  { "id": "venue_011", "type": "venue", "name": "Lakeside Gazebo",               "cost": 2, "excitement": 2, "icons": ["nature", "whimsy"] },
+  { "id": "venue_012", "type": "venue", "name": "Industrial Chic Warehouse",     "cost": 3, "excitement": 3, "icons": ["edge", "edge", "nature"] }
 ]

@@ -49,7 +49,7 @@ function ScoringCardView({ card, cls, onClick, compact }: { card: ScoringCard; c
     <div className={cls} onClick={onClick}>
       <div className={styles.header}>
         <span className={styles.name}>{card.name}</span>
-        <span className={styles.category}>{CATEGORY_LABELS[card.category]}</span>
+        {card.category && <span className={styles.category}>{CATEGORY_LABELS[card.category]}</span>}
       </div>
       <div className={styles.goalText}>{card.frontFormula}</div>
       {!compact && (

@@ -1,24 +1,17 @@
-import { useState } from 'react'
 import { useGameStore } from '../store'
 import { calculateScore, hasValidWedding } from '../scoring'
 import { IconChip, ICON_NAMES } from './IconChip'
-import type { ScoringCard } from '../types'
 import styles from './EndgameScreen.module.css'
 
 export function EndgameScreen() {
   const players = useGameStore((s) => s.players)
-  const [flips, setFlips] = useState<Record<string, 'front' | 'back'>>({})
 
   const p1 = players[1]
   const p2 = players[2]
   const p1Valid = hasValidWedding(p1)
   const p2Valid = hasValidWedding(p2)
-  const p1Score = p1Valid && p1.chosenTheme ? calculateScore(p1, flips) : null
-  const p2Score = p2Valid && p2.chosenTheme ? calculateScore(p2, flips) : null
-
-  function toggleFlip(cardId: string) {
-    setFlips((f) => ({ ...f, [cardId]: f[cardId] === 'back' ? 'front' : 'back' }))
-  }
+  const p1Score = p1Valid && p1.chosenTheme ? calculateScore(p1, p2) : null
+  const p2Score = p2Valid && p2.chosenTheme ? calculateScore(p2, p1) : null
 
   let winner: string
   if (!p1Valid && !p2Valid) winner = 'Neither player has a valid wedding!'
@@ -56,9 +49,9 @@ export function EndgameScreen() {
 
                   <div className={styles.sectionLabel}>Theme Score</div>
                   {score.themeResults.map((r) => (
-                    <div key={r.name} className={`${styles.line} ${r.achieved ? '' : styles.missed}`}>
-                      <span>{r.name}</span>
-                      <span>{r.achieved ? `+${r.points}` : '—'}</span>
+                    <div key={r.name} className={`${styles.line} ${r.active ? '' : styles.missed}`}>
+                      <span>{r.name}{r.isBonus ? ' (bonus)' : ''}</span>
+                      <span>{r.active ? `+${r.points}` : '—'}</span>
                     </div>
                   ))}
 
@@ -67,7 +60,7 @@ export function EndgameScreen() {
                       <div className={styles.sectionLabel}>Scoring Cards</div>
                       {score.scoringCardResults.map((r) => (
                         <div key={r.card.id} className={styles.scoringCardRow}>
-                          <FlipToggle card={r.card} side={flips[r.card.id] ?? 'front'} onToggle={() => toggleFlip(r.card.id)} />
+                          <span className={styles.cardName}>{r.card.name}</span>
                           <span className={styles.cardPoints}>
                             {r.side === 'back' ? (
                               <span className={styles.backSide}>
@@ -87,7 +80,7 @@ export function EndgameScreen() {
                     <div className={styles.line}><span>Full tableau bonus</span><span>+{score.tableauBonus}</span></div>
                   )}
 
-                  <div className={styles.line}><span>Leftover coins ({player.coins})</span><span>+{score.coins}</span></div>
+                  <div className={styles.line}><span>Coins ({player.coins})</span><span>+{score.coins}</span></div>
                   <div className={styles.line}><span>Leftover cards ({score.leftoverCards})</span><span>+{score.leftoverCards}</span></div>
 
                   <div className={styles.total}>Total: {score.total}</div>
@@ -98,14 +91,5 @@ export function EndgameScreen() {
         })}
       </div>
     </div>
-  )
-}
-
-function FlipToggle({ card, side, onToggle }: { card: ScoringCard; side: 'front' | 'back'; onToggle: () => void }) {
-  return (
-    <button className={styles.flipBtn} onClick={onToggle} title="Toggle front/back">
-      <span className={styles.flipName}>{card.name}</span>
-      <span className={styles.flipSide}>{side === 'front' ? 'Formula' : 'Icon'} ⇄</span>
-    </button>
   )
 }

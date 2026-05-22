@@ -30,6 +30,8 @@ function makePlayer(id: 1 | 2): PlayerState {
     stagingVendors: [],
     stagingVenues: [],
     scoringCards: [],
+    scoringFlips: {},
+    bonusIcons: [],
     themeCard: null,
     chosenTheme: null,
   }
@@ -74,13 +76,13 @@ function discardOldestFromMarket(market: Market): Market {
 
 export interface GameStore extends GameState {
   loadData: (vendors: VendorCard[], venues: VenueCard[], scoringCards: ScoringCard[], themes: ThemeCard[]) => void
-  selectAction: (action: 'take2' | 'gain3coins' | 'book' | 'swap') => void
+  selectAction: (action: 'take2' | 'gain3coins' | 'book') => void
   takeCard: (marketType: MarketType, index: number | 'blind') => void
   confirmTake: () => void
+  chooseFlip: (side: 'front' | 'back') => void
   selectCardToBook: (card: VendorCard | VenueCard) => void
   bookCard: (position: GridPosition) => void
-  selectSwapPosition: (position: GridPosition) => void
-  swapCard: (marketType: MarketType, index: number | 'blind') => void
+  chooseVenueIcon: (icon: import('./types').Icon) => void
   skipBonus: () => void
   discardFromStaging: (card: VendorCard | VenueCard) => void
   selectTheme: (playerId: 1 | 2, theme: Theme) => void
@@ -95,7 +97,7 @@ const initialState: GameState = {
   roundNumber: 1,
   players: { 1: makePlayer(1), 2: makePlayer(2) },
   markets: {
-    vendor: { visible: [null, null, null, null, null], deck: [] },
+    vendor: { visible: [null, null, null, null, null, null], deck: [] },
     venue: { visible: [null, null, null], deck: [] },
     scoring: { visible: [], deck: [] },
   },
@@ -112,7 +114,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const shuffledScoring = shuffle(scoringCards)
     const shuffledThemes = shuffle(themes)
 
-    const vendorMarket = makeMarket(shuffledVendors as AnyCard[], 5)
+    const vendorMarket = makeMarket(shuffledVendors as AnyCard[], 6)
     const venueMarket = makeMarket(shuffledVenues as AnyCard[], 3)
     // Scoring deck is held in reserve; visible opens at midgame
     const scoringMarket: Market = { visible: [], deck: shuffledScoring as AnyCard[] }
@@ -166,17 +168,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
       get()._endTurn()
     } else if (action === 'book') {
       set({ phase: 'booking', pendingAction: { type: 'book', card: null as unknown as VendorCard } })
-    } else if (action === 'swap') {
-      set({ phase: 'swapping', pendingAction: { type: 'swap', replacePosition: null } })
     }
   },
 
   takeCard(marketType, index) {
     const { phase, activePlayer, players, markets, pendingAction } = get()
-    const validPhases = ['taking_cards', 'bonus_draw2', 'venue_bonus_take']
+    const validPhases = ['taking_cards', 'bonus_draw2']
     if (!validPhases.includes(phase)) return
     if (!pendingAction) return
-    const validTypes = ['take2', 'bonus_draw2', 'venue_bonus_take']
+    const validTypes = ['take2', 'bonus_draw2']
     if (!validTypes.includes(pendingAction.type)) return
 
     const player = players[activePlayer]
@@ -203,6 +203,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
 
     const newTaken = [...(pendingAction as { type: string; taken: AnyCard[] }).taken, card]
+
+    if (card.type === 'scoring') {
+      // Pause for immediate flip choice before adding to player
+      set((s) => ({
+        markets: { ...s.markets, [marketType]: newMarket },
+        phase: 'scoring_flip_choice',
+        pendingAction: {
+          type: 'scoring_flip_choice',
+          card: card as import('./types').ScoringCard,
+          resumePhase: phase as 'taking_cards' | 'bonus_draw2',
+          takenSoFar: newTaken,
+        },
+      }))
+      return
+    }
+
     const newPlayer = addCardToStaging(player, card)
 
     set((s) => ({
@@ -211,13 +227,46 @@ export const useGameStore = create<GameStore>((set, get) => ({
       pendingAction: { ...pendingAction, taken: newTaken } as typeof pendingAction,
     }))
 
-    if (newTaken.length === 2) {
+    if (newTaken.length >= 2) {
       get().confirmTake()
     }
   },
 
   confirmTake() {
     get()._endTurn()
+  },
+
+  chooseFlip(side) {
+    const { phase, activePlayer, players, pendingAction } = get()
+    if (phase !== 'scoring_flip_choice') return
+    if (!pendingAction || pendingAction.type !== 'scoring_flip_choice') return
+
+    const { card, resumePhase, takenSoFar } = pendingAction as {
+      type: 'scoring_flip_choice'
+      card: import('./types').ScoringCard
+      resumePhase: 'taking_cards' | 'bonus_draw2'
+      takenSoFar: AnyCard[]
+    }
+    const player = players[activePlayer]
+
+    set((s) => ({
+      players: {
+        ...s.players,
+        [activePlayer]: {
+          ...player,
+          scoringCards: [...player.scoringCards, card],
+          scoringFlips: { ...player.scoringFlips, [card.id]: side },
+        },
+      },
+      pendingAction: null,
+    }))
+
+    if (takenSoFar.length >= 2) {
+      get()._endTurn()
+    } else {
+      const actionType = resumePhase === 'taking_cards' ? 'take2' : 'bonus_draw2'
+      set({ phase: resumePhase, pendingAction: { type: actionType, taken: takenSoFar } as never })
+    }
   },
 
   selectCardToBook(card) {
@@ -265,11 +314,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
 
     if (card.type === 'venue') {
-      // Venue booking bonus: +3 coins immediately, then Take 2
+      // Venue booking bonus: choose 1 theme icon
       set((s) => ({
-        players: { ...s.players, [activePlayer]: { ...newPlayer, coins: newPlayer.coins + 3 } },
-        phase: 'venue_bonus_take',
-        pendingAction: { type: 'venue_bonus_take', taken: [] },
+        players: { ...s.players, [activePlayer]: newPlayer },
+        phase: 'venue_bonus_icon',
+        pendingAction: { type: 'venue_bonus_icon' },
       }))
       return
     }
@@ -282,59 +331,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get()._applyBonus(bonus, bonusBookDepth)
   },
 
-  selectSwapPosition(position) {
-    const { phase, activePlayer, players } = get()
-    if (phase !== 'swapping') return
-    const card = players[activePlayer].grid[position]
-    if (!card || card.type !== 'vendor') return
-    set({ pendingAction: { type: 'swap', replacePosition: position } })
-  },
-
-  swapCard(marketType, index) {
-    const { activePlayer, players, markets, pendingAction } = get()
-    if (!pendingAction || pendingAction.type !== 'swap') return
-
-    const replacePosition = (pendingAction as { type: 'swap'; replacePosition: GridPosition | null }).replacePosition
-    if (replacePosition === null) return
-
-    const market = markets[marketType]
-    let newCard: AnyCard | null = null
-    let newMarket = { ...market }
-
-    if (index === 'blind') {
-      if (market.deck.length === 0) return
-      newCard = market.deck[0]!
-      newMarket = { ...market, deck: market.deck.slice(1) }
-    } else {
-      newCard = market.visible[index] ?? null
-      if (!newCard) return
-      const newVisible = [...market.visible]
-      newVisible[index] = null
-      newMarket = { ...market, visible: newVisible }
-    }
-
-    if (!newCard || newCard.type !== 'vendor') return
-
+  chooseVenueIcon(icon) {
+    const { activePlayer, players } = get()
     const player = players[activePlayer]
-    if (player.coins < newCard.cost) return
-
-    const newGrid = { ...player.grid, [replacePosition]: newCard }
-
     set((s) => ({
       players: {
         ...s.players,
-        [activePlayer]: { ...player, coins: player.coins - newCard!.cost, grid: newGrid },
+        [activePlayer]: { ...player, bonusIcons: [...player.bonusIcons, icon] },
       },
-      markets: { ...s.markets, [marketType]: newMarket },
       pendingAction: null,
     }))
-
     get()._endTurn()
   },
 
   skipBonus() {
     const { phase } = get()
-    if (phase === 'bonus_book' || phase === 'bonus_draw2' || phase === 'venue_bonus_take') {
+    if (phase === 'bonus_book' || phase === 'bonus_draw2') {
       get()._endTurn()
     }
   },
