@@ -72,9 +72,11 @@
 
 .themeName { font-size: 1.1rem; font-weight: 700; }
 
-.themeIcons { display: flex; gap: 6px; align-items: center; }
+.themeIcons { display: flex; flex-direction: column; gap: 5px; }
 
-.iconLabel { display: inline-flex; }
+.iconLabel { display: flex; align-items: center; gap: 6px; }
+
+.iconName { font-size: 12px; color: var(--c-text-muted); }
 
 .scoreCards {
   display: flex;

@@ -6,13 +6,14 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-width: 110px;
+  width: 140px;
+  flex-shrink: 0;
   transition: border-color 0.15s, transform 0.1s;
   user-select: none;
 }
 
 .card.compact {
-  min-width: 80px;
+  width: 110px;
   padding: 5px;
   gap: 4px;
   font-size: 12px;

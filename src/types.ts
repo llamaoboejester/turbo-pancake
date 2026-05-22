@@ -123,7 +123,7 @@ export interface GameState {
 
 export type PendingAction =
   | { type: 'take2'; taken: AnyCard[] }
-  | { type: 'book'; card: VendorCard | VenueCard }
-  | { type: 'swap'; newCard: VendorCard | null }
+  | { type: 'book'; card: VendorCard | VenueCard | null }
+  | { type: 'swap'; replacePosition: GridPosition | null }
   | { type: 'bonus_draw2'; taken: AnyCard[] }
   | { type: 'bonus_book'; card: VendorCard | VenueCard | null }

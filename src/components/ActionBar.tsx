@@ -37,9 +37,9 @@ export function ActionBar() {
         return `Bonus Draw 2 — pick ${2 - taken} more`
       }
       case 'swapping': {
-        const pa = pendingAction as { type: 'swap'; newCard: unknown } | null
-        if (!pa?.newCard) return 'Swap: select a booked vendor to replace'
-        return 'Swap: pick a card from the market'
+        const pa = pendingAction as { type: 'swap'; replacePosition: unknown } | null
+        if (!pa?.replacePosition) return 'Swap: click a booked vendor in your grid to replace'
+        return 'Swap: pick a vendor from the market'
       }
       default: return ''
     }

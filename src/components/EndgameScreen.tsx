@@ -1,7 +1,7 @@
 import { useGameStore } from '../store'
 import { calculateScore, hasValidWedding } from '../scoring'
 import type { Theme } from '../types'
-import { IconChip } from './IconChip'
+import { IconChip, ICON_NAMES } from './IconChip'
 import styles from './EndgameScreen.module.css'
 
 export function EndgameScreen() {
@@ -100,7 +100,8 @@ function ThemeOption({ theme, onSelect }: { theme: Theme; onSelect: () => void }
       <div className={styles.themeIcons}>
         {theme.icons.map((ic, i) => (
           <span key={i} className={styles.iconLabel}>
-            <IconChip icon={ic} size="md" showName />
+            <IconChip icon={ic} size="md" />
+            <span className={styles.iconName}>{ICON_NAMES[ic]}</span>
           </span>
         ))}
       </div>

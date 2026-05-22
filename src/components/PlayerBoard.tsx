@@ -2,12 +2,12 @@ import { useGameStore } from '../store'
 import type { PlayerState, GridPosition, VendorCard, VenueCard, Icon } from '../types'
 import { GRID_BONUSES } from '../types'
 import { CardView } from './CardView'
-import { IconChip } from './IconChip'
+import { IconChip, ICON_NAMES } from './IconChip'
+import { IconBar } from './IconBar'
 import styles from './PlayerBoard.module.css'
 
 const BONUS_LABELS = { draw2: 'Draw 2', book: 'Book', coins3: '+3 Coins', none: 'Venue' }
 const POSITIONS: GridPosition[] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-const ICONS: Icon[] = ['whimsy', 'edge', 'nature', 'tradition', 'elegance']
 
 interface Props {
   playerId: 1 | 2
@@ -20,27 +20,33 @@ export function PlayerBoard({ playerId }: Props) {
   const pendingAction = useGameStore((s) => s.pendingAction)
   const bookCard = useGameStore((s) => s.bookCard)
   const selectCardToBook = useGameStore((s) => s.selectCardToBook)
-  const selectCardToSwap = useGameStore((s) => s.selectCardToSwap)
+  const selectSwapPosition = useGameStore((s) => s.selectSwapPosition)
   const discardFromStaging = useGameStore((s) => s.discardFromStaging)
+  const skipBonus = useGameStore((s) => s.skipBonus)
   const turnNumber = useGameStore((s) => s.turnNumber)
 
   const isActive = activePlayer === playerId
   const isBooking = isActive && (phase === 'booking' || phase === 'bonus_book')
   const isSwapping = isActive && phase === 'swapping'
   const isTaking = isActive && (phase === 'taking_cards' || phase === 'bonus_draw2')
+  const isBonusPhase = isActive && (phase === 'bonus_book' || phase === 'bonus_draw2')
 
-  const selectedCard = isBooking && pendingAction && 'card' in pendingAction
+  const selectedBookCard = isBooking && pendingAction && 'card' in pendingAction
     ? (pendingAction as { card: VendorCard | VenueCard | null }).card
     : null
 
-  const swapSource = isSwapping && pendingAction && pendingAction.type === 'swap'
-    ? (pendingAction as { type: 'swap'; newCard: VendorCard | null }).newCard
+  const swapReplacePosition = isSwapping && pendingAction?.type === 'swap'
+    ? (pendingAction as { type: 'swap'; replacePosition: GridPosition | null }).replacePosition
     : null
 
-  const turnsRemaining = 12 - Math.ceil((turnNumber - (playerId === 1 ? 1 : 0)) / 2)
+  // Correct per-player turn counter
+  const p1TurnsTaken = Math.ceil((turnNumber - 1) / 2)
+  const p2TurnsTaken = Math.floor((turnNumber - 1) / 2)
+  const turnsTaken = playerId === 1 ? p1TurnsTaken : p2TurnsTaken
+  const turnsRemaining = 12 - turnsTaken
 
   function iconCounts(): Record<Icon, number> {
-    const counts = { whimsy: 0, edge: 0, nature: 0, tradition: 0, elegance: 0 }
+    const counts: Record<Icon, number> = { whimsy: 0, edge: 0, nature: 0, tradition: 0, elegance: 0 }
     for (const card of Object.values(player.grid)) {
       if (card) card.icons.forEach((ic) => counts[ic]++)
     }
@@ -48,12 +54,18 @@ export function PlayerBoard({ playerId }: Props) {
   }
 
   function canBookToPosition(pos: GridPosition): boolean {
-    if (!isBooking || !selectedCard) return false
+    if (!isBooking || !selectedBookCard) return false
     if (player.grid[pos] !== null) return false
-    if (selectedCard.type === 'venue' && pos !== 5) return false
-    if (selectedCard.type === 'vendor' && pos === 5) return false
-    if (player.coins < selectedCard.cost) return false
+    if (selectedBookCard.type === 'venue' && pos !== 5) return false
+    if (selectedBookCard.type === 'vendor' && pos === 5) return false
+    if (player.coins < selectedBookCard.cost) return false
     return true
+  }
+
+  function isSwapTarget(pos: GridPosition): boolean {
+    if (!isSwapping || swapReplacePosition !== null) return false
+    const card = player.grid[pos]
+    return card !== null && card.type === 'vendor'
   }
 
   const counts = iconCounts()
@@ -63,18 +75,14 @@ export function PlayerBoard({ playerId }: Props) {
       <div className={styles.header}>
         <span className={styles.playerLabel}>Player {playerId}</span>
         <span className={styles.coins}>💰 {player.coins}</span>
-        <span className={styles.turns}>↩ {turnsRemaining} turns</span>
+        <span className={styles.turns}>{turnsRemaining} turns left</span>
         {isActive && <span className={styles.activeBadge}>Active</span>}
+        {isBonusPhase && (
+          <button className={styles.skipBtn} onClick={skipBonus}>Skip Bonus</button>
+        )}
       </div>
 
-      <div className={styles.iconBar}>
-        {ICONS.map((ic) => (
-          <div key={ic} className={styles.iconCount}>
-            <IconChip icon={ic} size="sm" />
-            <span>{counts[ic]}</span>
-          </div>
-        ))}
-      </div>
+      <IconBar counts={counts} />
 
       <ThemeDisplay player={player} />
 
@@ -83,12 +91,24 @@ export function PlayerBoard({ playerId }: Props) {
           const card = player.grid[pos]
           const bonus = GRID_BONUSES[pos]
           const canBook = canBookToPosition(pos)
+          const canSwap = isSwapTarget(pos)
+          const isSelectedSwap = swapReplacePosition === pos
 
           return (
             <div
               key={pos}
-              className={`${styles.cell} ${canBook ? styles.canBook : ''} ${card ? styles.filled : ''}`}
-              onClick={canBook ? () => bookCard(pos) : undefined}
+              className={[
+                styles.cell,
+                canBook ? styles.canBook : '',
+                canSwap ? styles.canSwap : '',
+                isSelectedSwap ? styles.swapSelected : '',
+                card ? styles.filled : '',
+              ].join(' ')}
+              onClick={
+                canBook ? () => bookCard(pos) :
+                canSwap ? () => selectSwapPosition(pos) :
+                undefined
+              }
             >
               {card ? (
                 <CardView card={card} compact />
@@ -108,12 +128,8 @@ export function PlayerBoard({ playerId }: Props) {
               <div key={card.id} className={styles.stagingCard}>
                 <CardView
                   card={card}
-                  selected={selectedCard?.id === card.id || swapSource?.id === card.id}
-                  onClick={
-                    isBooking ? () => selectCardToBook(card) :
-                    isSwapping && !swapSource ? () => selectCardToSwap(card) :
-                    undefined
-                  }
+                  selected={selectedBookCard?.id === card.id}
+                  onClick={isBooking ? () => selectCardToBook(card) : undefined}
                   compact
                 />
                 {isActive && !isBooking && !isSwapping && !isTaking && (
@@ -132,7 +148,7 @@ export function PlayerBoard({ playerId }: Props) {
                 <div key={card.id} className={styles.stagingCard}>
                   <CardView
                     card={card}
-                    selected={selectedCard?.id === card.id}
+                    selected={selectedBookCard?.id === card.id}
                     onClick={isBooking ? () => selectCardToBook(card) : undefined}
                     compact
                   />
@@ -174,8 +190,9 @@ function ThemeDisplay({ player }: { player: PlayerState }) {
           <span className={styles.themeName}>{theme.name}</span>
           <div className={styles.themeIcons}>
             {theme.icons.map((ic, i) => (
-              <span key={i} className={styles.themeIconLabel}>
-                <IconChip icon={ic} size="sm" showName />
+              <span key={i} className={styles.themeIconRow}>
+                <IconChip icon={ic} size="sm" />
+                <span className={styles.themeIconName}>{ICON_NAMES[ic]}</span>
               </span>
             ))}
           </div>

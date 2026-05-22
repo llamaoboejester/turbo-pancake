@@ -77,13 +77,13 @@ export interface GameStore extends GameState {
   confirmTake: () => void
   selectCardToBook: (card: VendorCard | VenueCard) => void
   bookCard: (position: GridPosition) => void
-  selectCardToSwap: (card: VendorCard) => void
+  selectSwapPosition: (position: GridPosition) => void
   swapCard: (marketType: MarketType, index: number | 'blind') => void
+  skipBonus: () => void
   discardFromStaging: (card: VendorCard | VenueCard) => void
   selectTheme: (theme: Theme) => void
   confirmScoring: () => void
   _applyBonus: (bonus: import('./types').GridBonus, depth: number) => void
-  _resolveBonus: () => void
   _endTurn: () => void
 }
 
@@ -166,7 +166,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     } else if (action === 'book') {
       set({ phase: 'booking', pendingAction: { type: 'book', card: null as unknown as VendorCard } })
     } else if (action === 'swap') {
-      set({ phase: 'swapping', pendingAction: { type: 'swap', newCard: null } })
+      set({ phase: 'swapping', pendingAction: { type: 'swap', replacePosition: null } })
     }
   },
 
@@ -214,12 +214,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   confirmTake() {
-    const { phase } = get()
-    if (phase === 'taking_cards') {
-      get()._endTurn()
-    } else if (phase === 'bonus_draw2') {
-      get()._resolveBonus()
-    }
+    get()._endTurn()
   },
 
   selectCardToBook(card) {
@@ -278,15 +273,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get()._applyBonus(bonus, bonusBookDepth)
   },
 
-  selectCardToSwap(card) {
-    const { phase } = get()
+  selectSwapPosition(position) {
+    const { phase, activePlayer, players } = get()
     if (phase !== 'swapping') return
-    set({ pendingAction: { type: 'swap', newCard: card } })
+    const card = players[activePlayer].grid[position]
+    if (!card || card.type !== 'vendor') return
+    set({ pendingAction: { type: 'swap', replacePosition: position } })
   },
 
   swapCard(marketType, index) {
     const { activePlayer, players, markets, pendingAction } = get()
     if (!pendingAction || pendingAction.type !== 'swap') return
+
+    const replacePosition = (pendingAction as { type: 'swap'; replacePosition: GridPosition | null }).replacePosition
+    if (replacePosition === null) return
 
     const market = markets[marketType]
     let newCard: AnyCard | null = null
@@ -306,19 +306,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     if (!newCard || newCard.type !== 'vendor') return
 
-    const swapTarget = (pendingAction as { type: 'swap'; newCard: VendorCard | null }).newCard
-    if (!swapTarget) return
-
     const player = players[activePlayer]
     if (player.coins < newCard.cost) return
 
-    // Find where the old card is in the grid
-    const position = (Object.entries(player.grid) as [string, VendorCard | VenueCard | null][])
-      .find(([, c]) => c?.id === swapTarget.id)?.[0]
-    if (!position) return
-
-    const gridPos = Number(position) as GridPosition
-    const newGrid = { ...player.grid, [gridPos]: newCard }
+    const newGrid = { ...player.grid, [replacePosition]: newCard }
 
     set((s) => ({
       players: {
@@ -330,6 +321,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }))
 
     get()._endTurn()
+  },
+
+  skipBonus() {
+    const { phase } = get()
+    if (phase === 'bonus_book' || phase === 'bonus_draw2') {
+      get()._endTurn()
+    }
   },
 
   discardFromStaging(card) {
@@ -379,43 +377,39 @@ export const useGameStore = create<GameStore>((set, get) => ({
           [activePlayer]: { ...s.players[activePlayer], coins: s.players[activePlayer].coins + 3 },
         },
       }))
-      get()._resolveBonus()
+      get()._endTurn()
     } else if (bonus === 'draw2') {
       set({ phase: 'bonus_draw2', pendingAction: { type: 'bonus_draw2', taken: [] } })
     } else if (bonus === 'book') {
       set({ phase: 'bonus_book', bonusBookDepth: depth + 1, pendingAction: { type: 'bonus_book', card: null } })
     } else {
-      get()._resolveBonus()
+      get()._endTurn()
     }
-  },
-
-  _resolveBonus() {
-    const { phase, bonusBookDepth } = get()
-    if (phase === 'bonus_book' && bonusBookDepth > 0) {
-      // Bonus book was used; now resolve the turn or wait for chain
-      // Phase transitions back in bookCard; here we just end turn
-    }
-    get()._endTurn()
   },
 
   _endTurn() {
-    const { activePlayer, turnNumber, roundNumber, markets } = get()
+    const { activePlayer, turnNumber, roundNumber, markets, players } = get()
 
-    // Replenish all markets at end of turn
+    const bothVenuesBooked =
+      Object.values(players[1].grid).some((c) => c?.type === 'venue') &&
+      Object.values(players[2].grid).some((c) => c?.type === 'venue')
+
+    const replenishVenue = !bothVenuesBooked
+
     const newMarkets = {
       vendor: replenishMarket(markets.vendor),
-      venue: replenishMarket(markets.venue),
+      venue: replenishVenue ? replenishMarket(markets.venue) : markets.venue,
       goal: replenishMarket(markets.goal),
     }
 
-    const nextPlayer = activePlayer === 1 ? 2 : 1
     const isEndOfRound = activePlayer === 2
+    const nextPlayer = activePlayer === 1 ? 2 : 1
 
     let finalMarkets = newMarkets
     if (isEndOfRound) {
       finalMarkets = {
         vendor: discardOldestFromMarket(newMarkets.vendor),
-        venue: discardOldestFromMarket(newMarkets.venue),
+        venue: replenishVenue ? discardOldestFromMarket(newMarkets.venue) : newMarkets.venue,
         goal: discardOldestFromMarket(newMarkets.goal),
       }
     }
@@ -423,11 +417,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const nextTurn = turnNumber + 1
     const nextRound = isEndOfRound ? roundNumber + 1 : roundNumber
 
-    // Check if game is over (each player has had 12 turns)
-    const p1Turns = activePlayer === 1 ? turnNumber : turnNumber - 1
-    const p2Turns = activePlayer === 2 ? turnNumber : turnNumber - 1
-
-    const gameOver = p1Turns >= TURNS_PER_PLAYER && p2Turns >= TURNS_PER_PLAYER
+    const gameOver = turnNumber >= TURNS_PER_PLAYER * 2
 
     if (gameOver) {
       set({
