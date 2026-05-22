@@ -1,0 +1,11 @@
+[
+  { "id": "score_indulged",   "type": "scoring", "name": "Indulged",   "category": "food_drink",         "frontFormula": "5 pts per Food & Drink vendor booked, max 15",          "backIcon": "whimsy"    },
+  { "id": "score_captivated", "type": "scoring", "name": "Captivated", "category": "entertainment",       "frontFormula": "5 pts per Entertainment vendor booked, max 15",         "backIcon": "edge"      },
+  { "id": "score_moved",      "type": "scoring", "name": "Moved",      "category": "ceremony",            "frontFormula": "5 pts per Ceremony vendor booked, max 15",              "backIcon": "nature"    },
+  { "id": "score_spoiled",    "type": "scoring", "name": "Spoiled",    "category": "transportation",      "frontFormula": "5 pts per Transportation vendor booked, max 15",        "backIcon": "tradition" },
+  { "id": "score_admired",    "type": "scoring", "name": "Admired",    "category": "photography",         "frontFormula": "5 pts per Photography vendor booked, max 15",           "backIcon": "elegance"  },
+  { "id": "score_impressed",  "type": "scoring", "name": "Impressed",  "category": "attire_accessories",  "frontFormula": "5 pts per Attire & Accessories vendor booked, max 15", "backIcon": "whimsy"    },
+  { "id": "score_amazed",     "type": "scoring", "name": "Amazed",     "category": "flowers_decorations", "frontFormula": "5 pts per Flowers & Decorations vendor booked, max 15", "backIcon": "nature"    },
+  { "id": "score_honored",    "type": "scoring", "name": "Honored",    "category": "stationery",          "frontFormula": "5 pts per Stationery vendor booked, max 15",            "backIcon": "tradition" },
+  { "id": "score_pampered",   "type": "scoring", "name": "Pampered",   "category": "favors_gifts",        "frontFormula": "5 pts per Favors & Gifts vendor booked, max 15",        "backIcon": "elegance"  }
+]

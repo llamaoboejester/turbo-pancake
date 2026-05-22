@@ -14,7 +14,6 @@
 }
 
 .title { font-size: 1.6rem; font-weight: 800; }
-.sub { color: var(--c-text-muted); margin-top: 4px; }
 
 .winner {
   font-size: 1.4rem;
@@ -23,151 +22,6 @@
   margin-top: 8px;
 }
 
-/* Theme selection layout */
-.playerPanels {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.playerPanel {
-  flex: 1;
-  background: var(--c-surface);
-  border: 1px solid var(--c-border);
-  border-radius: 10px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.panelHeader {
-  font-size: 15px;
-  font-weight: 700;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--c-border);
-}
-
-.miniGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
-}
-
-.miniCell {
-  background: var(--c-bg);
-  border: 1px dashed var(--c-border);
-  border-radius: 6px;
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3px;
-}
-
-.miniCell.miniCellFilled { border-style: solid; }
-
-.miniBonus {
-  font-size: 10px;
-  color: var(--c-text-muted);
-  text-align: center;
-}
-
-.goalsRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-}
-
-.goalsLabel { color: var(--c-text-muted); font-weight: 600; }
-
-.goalPill {
-  background: #f5c51822;
-  color: var(--c-coin);
-  border: 1px solid #f5c51844;
-  border-radius: 4px;
-  padding: 1px 6px;
-  font-size: 11px;
-}
-
-.themeSection {
-  border-top: 1px solid var(--c-border);
-  padding-top: 10px;
-}
-
-.themePrompt {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--c-text-muted);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.themeOptions {
-  display: flex;
-  gap: 8px;
-}
-
-.themeOption {
-  flex: 1;
-  background: var(--c-bg);
-  border: 2px solid var(--c-border);
-  border-radius: 8px;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  cursor: pointer;
-  text-align: left;
-  transition: border-color 0.15s, background 0.1s;
-}
-
-.themeOption:hover {
-  border-color: var(--c-coin);
-  background: #f5c51808;
-}
-
-.themeName { font-size: 14px; font-weight: 700; }
-
-.themeIconRows { display: flex; flex-direction: column; gap: 4px; }
-
-.iconLabel {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-}
-
-.iconName { font-size: 12px; color: var(--c-text-muted); }
-
-.iconCount { color: var(--c-text-muted); font-size: 12px; }
-
-.themeHint {
-  font-size: 11px;
-  color: var(--c-text-muted);
-  font-style: italic;
-}
-
-.chosenBanner {
-  background: #f5c51811;
-  border: 1px solid var(--c-coin);
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 13px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.chosenIcons {
-  display: flex;
-  gap: 10px;
-}
-
-/* Scoring layout */
 .scoreCards {
   display: flex;
   gap: 24px;
@@ -177,14 +31,14 @@
 
 .scoreCard {
   flex: 1;
-  min-width: 280px;
+  min-width: 300px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
   border-radius: 10px;
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .scoreHeader {
@@ -192,9 +46,31 @@
   font-weight: 700;
   border-bottom: 1px solid var(--c-border);
   padding-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.totalBadge {
+  margin-left: auto;
+  background: #f5c51822;
+  color: var(--c-coin);
+  border: 1px solid #f5c51844;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 13px;
 }
 
 .invalid { color: var(--c-accent); }
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--c-text-muted);
+  margin-top: 4px;
+}
 
 .line {
   display: flex;
@@ -205,8 +81,58 @@
 
 .line span:last-child { color: var(--c-text); font-weight: 600; }
 
-.missed { opacity: 0.4; }
-.missedLabel { font-size: 11px; color: var(--c-text-muted); margin-top: 4px; text-transform: uppercase; }
+.missed { opacity: 0.35; }
+
+.scoringCardRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.flipBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  flex: 1;
+  text-align: left;
+}
+
+.flipBtn:hover { border-color: #4a7aff; }
+
+.flipName { font-weight: 600; color: var(--c-text); }
+
+.flipSide {
+  color: var(--c-text-muted);
+  font-size: 11px;
+  margin-left: auto;
+}
+
+.cardPoints {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text);
+  min-width: 50px;
+  text-align: right;
+}
+
+.backSide {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.backLabel {
+  font-size: 12px;
+  color: var(--c-text-muted);
+  font-weight: normal;
+}
 
 .total {
   font-size: 1.2rem;
@@ -215,4 +141,5 @@
   border-top: 1px solid var(--c-border);
   padding-top: 8px;
   text-align: right;
+  margin-top: 4px;
 }

@@ -6,19 +6,23 @@ import styles from './MarketRow.module.css'
 const MARKET_LABELS: Record<MarketType, string> = {
   vendor: 'Vendor Market',
   venue: 'Venue Market',
-  goal: 'Goal Market',
+  scoring: 'Scoring Cards',
 }
 
 export function MarketRow() {
   const markets = useGameStore((s) => s.markets)
   const phase = useGameStore((s) => s.phase)
+  const roundNumber = useGameStore((s) => s.roundNumber)
   const activePlayer = useGameStore((s) => s.activePlayer)
   const players = useGameStore((s) => s.players)
   const pendingAction = useGameStore((s) => s.pendingAction)
   const takeCard = useGameStore((s) => s.takeCard)
   const swapCard = useGameStore((s) => s.swapCard)
 
-  const isTaking = phase === 'taking_cards' || phase === 'bonus_draw2'
+  const isSecondHalf = roundNumber > 6
+  const activeMarkets: MarketType[] = isSecondHalf ? ['vendor', 'scoring'] : ['vendor', 'venue']
+
+  const isTaking = phase === 'taking_cards' || phase === 'bonus_draw2' || phase === 'venue_bonus_take'
   const isSwapping = phase === 'swapping'
   const takenCount = (pendingAction && 'taken' in pendingAction) ? pendingAction.taken.length : 0
 
@@ -68,10 +72,10 @@ export function MarketRow() {
 
   return (
     <div className={styles.row}>
-      {(['vendor', 'venue', 'goal'] as MarketType[]).map((mt) => {
+      {activeMarkets.map((mt) => {
         const market = markets[mt]
         return (
-          <div key={mt} className={styles.market}>
+          <div key={mt} className={`${styles.market} ${mt === 'vendor' ? styles.vendorMarket : ''}`}>
             <div className={styles.label}>{MARKET_LABELS[mt]}</div>
             <div className={styles.cards}>
               {market.visible.map((card, i) => {

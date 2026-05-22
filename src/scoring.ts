@@ -1,16 +1,25 @@
-import type { PlayerState, GoalCard, Theme, Icon, VendorCategory } from './types'
+import type { PlayerState, ScoringCard, Theme, Icon, VendorCategory } from './types'
 
-interface GoalResult {
-  goal: GoalCard
+export interface ThemeRubricResult {
+  name: string
   points: number
   achieved: boolean
 }
 
-interface ScoreBreakdown {
+export interface ScoringCardResult {
+  card: ScoringCard
+  side: 'front' | 'back'
+  points: number
+}
+
+export interface ScoreBreakdown {
   excitement: number
-  goalResults: GoalResult[]
-  goalTotal: number
+  themeScore: number
+  themeResults: ThemeRubricResult[]
+  scoringCardResults: ScoringCardResult[]
+  tableauBonus: number
   coins: number
+  leftoverCards: number
   total: number
 }
 
@@ -18,7 +27,7 @@ function bookedCards(player: PlayerState) {
   return Object.values(player.grid).filter((c) => c !== null) as NonNullable<(typeof player.grid)[keyof typeof player.grid]>[]
 }
 
-function iconCounts(player: PlayerState): Record<Icon, number> {
+function baseIconCounts(player: PlayerState): Record<Icon, number> {
   const counts: Record<Icon, number> = { whimsy: 0, edge: 0, nature: 0, tradition: 0, elegance: 0 }
   for (const card of bookedCards(player)) {
     for (const icon of card.icons) counts[icon]++
@@ -26,111 +35,81 @@ function iconCounts(player: PlayerState): Record<Icon, number> {
   return counts
 }
 
-function scoreGuestGoal(player: PlayerState, category: VendorCategory): number {
+function evaluateThemeRubric(
+  counts: Record<Icon, number>,
+  theme: Theme,
+  hasBookedCards: boolean,
+): ThemeRubricResult[] {
+  const [a, b] = theme.icons
+  const allValues = Object.values(counts)
+  const max = Math.max(...allValues)
+
+  const subtle = max > 0 && (counts[a] === max || counts[b] === max)
+  const matched = counts[a] > 0 && counts[a] === counts[b]
+  const thematic = max > 0 && counts[a] === max && counts[b] === max
+  const balanced = (() => {
+    const vals = Object.values(counts)
+    const first = vals[0]
+    return first !== undefined && first > 0 && vals.every((v) => v === first)
+  })()
+  const unforgettable = hasBookedCards &&
+    (Object.keys(counts) as Icon[]).filter((i) => i !== a && i !== b).every((i) => counts[i] === 0)
+
+  return [
+    { name: 'Subtle', points: 10, achieved: subtle },
+    { name: 'Matched', points: 10, achieved: matched },
+    { name: 'Thematic', points: 20, achieved: thematic },
+    { name: 'Balanced', points: 15, achieved: balanced },
+    { name: 'Unforgettable', points: 30, achieved: unforgettable },
+  ]
+}
+
+function scoreScoringCardFront(player: PlayerState, category: VendorCategory): number {
   const count = Object.values(player.grid).filter(
     (c) => c !== null && c.type === 'vendor' && c.category === category
   ).length
   return Math.min(count * 5, 15)
 }
 
-function scoreBudgetGoal(player: PlayerState, targetCost: number): number {
-  const costs = bookedCards(player).map((c) => c.cost)
-  const freq: Record<number, number> = {}
-  for (const c of costs) freq[c] = (freq[c] ?? 0) + 1
-
-  const targetBucket = targetCost >= 3 ? 3 : targetCost
-  const targetCount = targetCost >= 3
-    ? costs.filter((c) => c >= 3).length
-    : (freq[targetCost] ?? 0)
-
-  const allCounts = [freq[1] ?? 0, freq[2] ?? 0, costs.filter((c) => c >= 3).length]
-  const max = Math.max(...allCounts)
-  if (targetCount === 0 || targetCount < max) return 0
-
-  const pts: Record<number, number> = { 1: 5, 2: 10, 3: 15 }
-  return pts[targetBucket] ?? 0
-}
-
-function scoreExcitementGoal(player: PlayerState, targetExcitement: number): number {
-  const values = bookedCards(player).map((c) => c.excitement)
-  const freq: Record<number, number> = {}
-  for (const v of values) {
-    const bucket = v >= 3 ? 3 : v
-    freq[bucket] = (freq[bucket] ?? 0) + 1
-  }
-
-  const targetBucket = targetExcitement >= 3 ? 3 : targetExcitement
-  const targetCount = freq[targetBucket] ?? 0
-  const max = Math.max(...Object.values(freq))
-  if (targetCount === 0 || targetCount < max) return 0
-
-  const pts: Record<number, number> = { 1: 5, 2: 10, 3: 15 }
-  return pts[targetBucket] ?? 0
-}
-
-function scoreThemeGoal(player: PlayerState, subtype: string, theme: Theme): number {
-  const counts = iconCounts(player)
-  const [a, b] = theme.icons
-  const allValues = Object.values(counts)
-  const max = Math.max(...allValues)
-
-  switch (subtype) {
-    case 'subtle':
-      return (counts[a] === max && max > 0) || (counts[b] === max && max > 0) ? 10 : 0
-
-    case 'matched':
-      return counts[a] > 0 && counts[a] === counts[b] ? 10 : 0
-
-    case 'thematic':
-      return counts[a] === max && counts[b] === max && max > 0 ? 20 : 0
-
-    case 'balanced': {
-      const vals = Object.values(counts)
-      const first = vals[0]
-      return first !== undefined && first > 0 && vals.every((v) => v === first) ? 15 : 0
-    }
-
-    case 'unforgettable': {
-      const nonThemeIcons = (Object.keys(counts) as Icon[]).filter((i) => i !== a && i !== b)
-      return nonThemeIcons.every((i) => counts[i] === 0) && bookedCards(player).length > 0 ? 30 : 0
-    }
-
-    default:
-      return 0
-  }
-}
-
-export function calculateScore(player: PlayerState): ScoreBreakdown {
+export function calculateScore(
+  player: PlayerState,
+  flips: Record<string, 'front' | 'back'>,
+): ScoreBreakdown {
   const cards = bookedCards(player)
   const excitement = cards.reduce((sum, c) => sum + c.excitement, 0)
 
-  const theme = player.chosenTheme
+  const theme = player.chosenTheme!
 
-  const goalResults: GoalResult[] = player.goals.map((goal) => {
-    let points = 0
-
-    if (goal.goalType === 'guest' && goal.category !== undefined) {
-      points = scoreGuestGoal(player, goal.category)
-    } else if (goal.goalType === 'budget' && goal.targetCost !== undefined) {
-      points = scoreBudgetGoal(player, goal.targetCost)
-    } else if (goal.goalType === 'excitement' && goal.targetExcitement !== undefined) {
-      points = scoreExcitementGoal(player, goal.targetExcitement)
-    } else if (goal.goalType === 'theme' && goal.themeSubtype !== undefined && theme !== null) {
-      points = scoreThemeGoal(player, goal.themeSubtype, theme)
+  // Build icon counts including back-side scoring cards
+  const counts = baseIconCounts(player)
+  for (const sc of player.scoringCards) {
+    if ((flips[sc.id] ?? 'front') === 'back') {
+      counts[sc.backIcon]++
     }
+  }
 
-    return { goal, points, achieved: points > 0 }
+  const themeResults = evaluateThemeRubric(counts, theme, cards.length > 0)
+  const themeScore = themeResults.filter((r) => r.achieved).reduce((sum, r) => sum + r.points, 0)
+
+  const scoringCardResults: ScoringCardResult[] = player.scoringCards.map((sc) => {
+    const side = flips[sc.id] ?? 'front'
+    const points = side === 'front' ? scoreScoringCardFront(player, sc.category) : 0
+    return { card: sc, side, points }
   })
 
-  const goalTotal = goalResults.reduce((sum, r) => sum + r.points, 0)
-  const coins = player.coins
+  const tableauBonus = Object.values(player.grid).every((c) => c !== null) ? 15 : 0
+  const leftoverCards = player.stagingVendors.length + player.stagingVenues.length
+  const scoringCardTotal = scoringCardResults.reduce((sum, r) => sum + r.points, 0)
 
   return {
     excitement,
-    goalResults,
-    goalTotal,
-    coins,
-    total: excitement + goalTotal + coins,
+    themeScore,
+    themeResults,
+    scoringCardResults,
+    tableauBonus,
+    coins: player.coins,
+    leftoverCards,
+    total: excitement + themeScore + scoringCardTotal + tableauBonus + player.coins + leftoverCards,
   }
 }
 

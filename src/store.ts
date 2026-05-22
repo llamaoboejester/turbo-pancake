@@ -5,7 +5,7 @@ import type {
   AnyCard,
   VendorCard,
   VenueCard,
-  GoalCard,
+  ScoringCard,
   GridPosition,
   Market,
   MarketType,
@@ -29,15 +29,18 @@ function makePlayer(id: 1 | 2): PlayerState {
     grid: emptyGrid(),
     stagingVendors: [],
     stagingVenues: [],
-    goals: [],
+    scoringCards: [],
     themeCard: null,
     chosenTheme: null,
   }
 }
 
-function makeMarket(cards: AnyCard[]): Market {
+function makeMarket(cards: AnyCard[], visibleSlots: number): Market {
   const deck = [...cards]
-  const visible: (AnyCard | null)[] = [deck.shift() ?? null, deck.shift() ?? null, deck.shift() ?? null]
+  const visible: (AnyCard | null)[] = []
+  for (let i = 0; i < visibleSlots; i++) {
+    visible.push(deck.shift() ?? null)
+  }
   return { visible, deck }
 }
 
@@ -64,14 +67,13 @@ function replenishMarket(market: Market): Market {
 function discardOldestFromMarket(market: Market): Market {
   const visible = [...market.visible]
   const deck = [...market.deck]
-  // Slot 0 is oldest — discard it, slide left, draw new card
   visible.shift()
   visible.push(deck.length > 0 ? deck.shift()! : null)
   return { visible, deck }
 }
 
 export interface GameStore extends GameState {
-  loadData: (vendors: VendorCard[], venues: VenueCard[], goals: GoalCard[], themes: ThemeCard[]) => void
+  loadData: (vendors: VendorCard[], venues: VenueCard[], scoringCards: ScoringCard[], themes: ThemeCard[]) => void
   selectAction: (action: 'take2' | 'gain3coins' | 'book' | 'swap') => void
   takeCard: (marketType: MarketType, index: number | 'blind') => void
   confirmTake: () => void
@@ -82,7 +84,6 @@ export interface GameStore extends GameState {
   skipBonus: () => void
   discardFromStaging: (card: VendorCard | VenueCard) => void
   selectTheme: (playerId: 1 | 2, theme: Theme) => void
-  confirmScoring: () => void
   _applyBonus: (bonus: import('./types').GridBonus, depth: number) => void
   _endTurn: () => void
 }
@@ -94,9 +95,9 @@ const initialState: GameState = {
   roundNumber: 1,
   players: { 1: makePlayer(1), 2: makePlayer(2) },
   markets: {
-    vendor: { visible: [null, null, null], deck: [] },
+    vendor: { visible: [null, null, null, null, null], deck: [] },
     venue: { visible: [null, null, null], deck: [] },
-    goal: { visible: [null, null, null], deck: [] },
+    scoring: { visible: [], deck: [] },
   },
   pendingAction: null,
   bonusBookDepth: 0,
@@ -105,17 +106,17 @@ const initialState: GameState = {
 export const useGameStore = create<GameStore>((set, get) => ({
   ...initialState,
 
-  loadData(vendors, venues, goals, themes) {
+  loadData(vendors, venues, scoringCards, themes) {
     const shuffledVendors = shuffle(vendors)
     const shuffledVenues = shuffle(venues)
-    const shuffledGoals = shuffle(goals)
+    const shuffledScoring = shuffle(scoringCards)
     const shuffledThemes = shuffle(themes)
 
-    const vendorMarket = makeMarket(shuffledVendors as AnyCard[])
-    const venueMarket = makeMarket(shuffledVenues as AnyCard[])
-    const goalMarket = makeMarket(shuffledGoals as AnyCard[])
+    const vendorMarket = makeMarket(shuffledVendors as AnyCard[], 5)
+    const venueMarket = makeMarket(shuffledVenues as AnyCard[], 3)
+    // Scoring deck is held in reserve; visible opens at midgame
+    const scoringMarket: Market = { visible: [], deck: shuffledScoring as AnyCard[] }
 
-    // Deal 2 starting vendors to each player from the vendor deck
     const p1StartVendors: VendorCard[] = []
     const p2StartVendors: VendorCard[] = []
     while (p1StartVendors.length < 2 && vendorMarket.deck.length > 0) {
@@ -138,7 +139,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       markets: {
         vendor: vendorMarket,
         venue: venueMarket,
-        goal: goalMarket,
+        scoring: scoringMarket,
       },
       players: {
         1: { ...makePlayer(1), stagingVendors: p1StartVendors, themeCard: p1ThemeCard },
@@ -172,8 +173,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   takeCard(marketType, index) {
     const { phase, activePlayer, players, markets, pendingAction } = get()
-    if (phase !== 'taking_cards' && phase !== 'bonus_draw2') return
-    if (!pendingAction || (pendingAction.type !== 'take2' && pendingAction.type !== 'bonus_draw2')) return
+    const validPhases = ['taking_cards', 'bonus_draw2', 'venue_bonus_take']
+    if (!validPhases.includes(phase)) return
+    if (!pendingAction) return
+    const validTypes = ['take2', 'bonus_draw2', 'venue_bonus_take']
+    if (!validTypes.includes(pendingAction.type)) return
 
     const player = players[activePlayer]
     const market = markets[marketType]
@@ -192,7 +196,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       newMarket = { ...market, visible: newVisible }
     }
 
-    // Enforce hand limits before taking
     if (card.type === 'vendor' && player.stagingVendors.length >= VENDOR_HAND_LIMIT) return
     if (card.type === 'venue') {
       if (player.stagingVenues.length >= VENUE_HAND_LIMIT) return
@@ -234,7 +237,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const player = players[activePlayer]
     if (player.coins < card.cost) return
 
-    // Validate placement
     if (card.type === 'venue' && position !== 5) return
     if (card.type === 'vendor' && position === 5) return
     if (player.grid[position] !== null) return
@@ -247,7 +249,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       ? player.stagingVenues.filter((c) => c.id !== card.id)
       : player.stagingVenues
 
-    // If booking a venue, discard remaining unbooked venues (+1 coin each)
     let coinsFromVenueDiscard = 0
     let finalStagingVenues = newStagingVenues
     if (card.type === 'venue') {
@@ -263,13 +264,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
       stagingVenues: finalStagingVenues,
     }
 
-    const bonus = GRID_BONUSES[position]
+    if (card.type === 'venue') {
+      // Venue booking bonus: +3 coins immediately, then Take 2
+      set((s) => ({
+        players: { ...s.players, [activePlayer]: { ...newPlayer, coins: newPlayer.coins + 3 } },
+        phase: 'venue_bonus_take',
+        pendingAction: { type: 'venue_bonus_take', taken: [] },
+      }))
+      return
+    }
 
+    const bonus = GRID_BONUSES[position]
     set((s) => ({
       players: { ...s.players, [activePlayer]: newPlayer },
       pendingAction: null,
     }))
-
     get()._applyBonus(bonus, bonusBookDepth)
   },
 
@@ -325,7 +334,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   skipBonus() {
     const { phase } = get()
-    if (phase === 'bonus_book' || phase === 'bonus_draw2') {
+    if (phase === 'bonus_book' || phase === 'bonus_draw2' || phase === 'venue_bonus_take') {
       get()._endTurn()
     }
   },
@@ -351,20 +360,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   selectTheme(playerId, theme) {
-    const { players } = get()
-    const player = players[playerId]
     set((s) => ({
-      players: { ...s.players, [playerId]: { ...player, chosenTheme: theme } },
+      players: { ...s.players, [playerId]: { ...s.players[playerId], chosenTheme: theme } },
     }))
 
-    const updated = get().players
-    if (updated[1].chosenTheme && updated[2].chosenTheme) {
-      set({ phase: 'endgame_scoring' })
+    const updated = get()
+    if (updated.players[1].chosenTheme && updated.players[2].chosenTheme) {
+      const { markets } = updated
+      // Open scoring card market: deal 3 from deck
+      const deck = [...markets.scoring.deck]
+      const visible: (AnyCard | null)[] = [deck.shift() ?? null, deck.shift() ?? null, deck.shift() ?? null]
+      set({
+        phase: 'action_select',
+        turnNumber: TURNS_PER_PLAYER + 1,
+        roundNumber: 7,
+        markets: {
+          ...markets,
+          venue: { visible: [null, null, null], deck: [] },
+          scoring: { visible, deck },
+        },
+        pendingAction: null,
+      })
     }
-  },
-
-  confirmScoring() {
-    // No-op for now; scoring screen is final
   },
 
   _applyBonus(bonus, depth) {
@@ -389,38 +406,49 @@ export const useGameStore = create<GameStore>((set, get) => ({
   _endTurn() {
     const { activePlayer, turnNumber, roundNumber, markets, players } = get()
 
+    const isSecondHalf = roundNumber > 6
+
     const bothVenuesBooked =
       Object.values(players[1].grid).some((c) => c?.type === 'venue') &&
       Object.values(players[2].grid).some((c) => c?.type === 'venue')
-
-    const replenishVenue = !bothVenuesBooked
+    const replenishVenue = !isSecondHalf && !bothVenuesBooked
 
     const newMarkets = {
       vendor: replenishMarket(markets.vendor),
       venue: replenishVenue ? replenishMarket(markets.venue) : markets.venue,
-      goal: replenishMarket(markets.goal),
+      scoring: isSecondHalf ? replenishMarket(markets.scoring) : markets.scoring,
     }
 
     const isEndOfRound = activePlayer === 2
     const nextPlayer = activePlayer === 1 ? 2 : 1
+    const nextRound = isEndOfRound ? roundNumber + 1 : roundNumber
+    const nextTurn = turnNumber + 1
 
     let finalMarkets = newMarkets
     if (isEndOfRound) {
       finalMarkets = {
         vendor: discardOldestFromMarket(newMarkets.vendor),
         venue: replenishVenue ? discardOldestFromMarket(newMarkets.venue) : newMarkets.venue,
-        goal: discardOldestFromMarket(newMarkets.goal),
+        scoring: isSecondHalf ? discardOldestFromMarket(newMarkets.scoring) : newMarkets.scoring,
       }
     }
 
-    const nextTurn = turnNumber + 1
-    const nextRound = isEndOfRound ? roundNumber + 1 : roundNumber
-
     const gameOver = turnNumber >= TURNS_PER_PLAYER * 2
-
     if (gameOver) {
       set({
-        phase: 'endgame_theme_select',
+        phase: 'endgame_scoring',
+        activePlayer: 1,
+        markets: finalMarkets,
+        pendingAction: null,
+        bonusBookDepth: 0,
+      })
+      return
+    }
+
+    // Midgame break after round 6
+    if (isEndOfRound && roundNumber === 6) {
+      set({
+        phase: 'midgame_theme_select',
         activePlayer: 1,
         markets: finalMarkets,
         pendingAction: null,
@@ -447,6 +475,6 @@ function addCardToStaging(player: PlayerState, card: AnyCard): PlayerState {
   } else if (card.type === 'venue') {
     return { ...player, stagingVenues: [...player.stagingVenues, card as VenueCard] }
   } else {
-    return { ...player, goals: [...player.goals, card as GoalCard] }
+    return { ...player, scoringCards: [...player.scoringCards, card as ScoringCard] }
   }
 }

@@ -49,6 +49,48 @@
 
 .skipBtn:hover { background: #f5c51844; }
 
+.themeSelectPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.themeSelectPrompt {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--c-coin);
+}
+
+.themeBtn {
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.1s;
+}
+
+.themeBtn:hover {
+  border-color: var(--c-coin);
+  background: #f5c51811;
+}
+
+.themeCommitted {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f5c51811;
+  border: 1px solid var(--c-coin);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.committedLabel {
+  font-size: 11px;
+  color: var(--c-text-muted);
+  font-weight: 600;
+}
+
 .themeDisplay {
   display: flex;
   gap: 8px;
@@ -140,6 +182,50 @@
   font-size: 11px;
   color: var(--c-text-muted);
   text-align: center;
+}
+
+.scoreArea {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #f5c51808;
+  border: 1px solid var(--c-coin);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.scoreTheme {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scoreThemeName {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.rubric {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.rubricPill {
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 10px;
+  color: var(--c-text-muted);
+}
+
+.scoringCards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 4px;
+  border-top: 1px solid var(--c-border);
 }
 
 .staging { display: flex; flex-direction: column; gap: 8px; }

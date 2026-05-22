@@ -36,6 +36,12 @@ export function ActionBar() {
         const taken = pendingAction && 'taken' in pendingAction ? pendingAction.taken.length : 0
         return `Bonus Draw 2 — pick ${2 - taken} more`
       }
+      case 'venue_bonus_take': {
+        const taken = pendingAction && 'taken' in pendingAction ? pendingAction.taken.length : 0
+        return `Venue bonus — take ${2 - taken} more cards`
+      }
+      case 'midgame_theme_select':
+        return 'End of Round 6 — each player locks in their theme'
       case 'swapping': {
         const pa = pendingAction as { type: 'swap'; replacePosition: unknown } | null
         if (!pa?.replacePosition) return 'Swap: click a booked vendor in your grid to replace'

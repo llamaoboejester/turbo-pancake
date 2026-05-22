@@ -1,13 +1,21 @@
 import { useGameStore } from '../store'
-import type { PlayerState, GridPosition, VendorCard, VenueCard, Icon } from '../types'
+import type { PlayerState, GridPosition, VendorCard, VenueCard, Icon, Theme } from '../types'
 import { GRID_BONUSES } from '../types'
 import { CardView } from './CardView'
-import { IconChip, ICON_NAMES } from './IconChip'
+import { IconChip, ICON_NAMES, ICON_COLORS } from './IconChip'
 import { IconBar } from './IconBar'
 import styles from './PlayerBoard.module.css'
 
 const BONUS_LABELS = { draw2: 'Draw 2', book: 'Book', coins3: '+3 Coins', none: 'Venue' }
 const POSITIONS: GridPosition[] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+const THEME_RUBRIC = [
+  { name: 'Subtle', pts: 10 },
+  { name: 'Matched', pts: 10 },
+  { name: 'Thematic', pts: 20 },
+  { name: 'Balanced', pts: 15 },
+  { name: 'Unforgettable', pts: 30 },
+]
 
 interface Props {
   playerId: 1 | 2
@@ -23,13 +31,17 @@ export function PlayerBoard({ playerId }: Props) {
   const selectSwapPosition = useGameStore((s) => s.selectSwapPosition)
   const discardFromStaging = useGameStore((s) => s.discardFromStaging)
   const skipBonus = useGameStore((s) => s.skipBonus)
+  const selectTheme = useGameStore((s) => s.selectTheme)
   const turnNumber = useGameStore((s) => s.turnNumber)
+  const roundNumber = useGameStore((s) => s.roundNumber)
 
   const isActive = activePlayer === playerId
   const isBooking = isActive && (phase === 'booking' || phase === 'bonus_book')
   const isSwapping = isActive && phase === 'swapping'
-  const isTaking = isActive && (phase === 'taking_cards' || phase === 'bonus_draw2')
-  const isBonusPhase = isActive && (phase === 'bonus_book' || phase === 'bonus_draw2')
+  const isTaking = isActive && (phase === 'taking_cards' || phase === 'bonus_draw2' || phase === 'venue_bonus_take')
+  const isBonusPhase = isActive && (phase === 'bonus_book' || phase === 'bonus_draw2' || phase === 'venue_bonus_take')
+  const isMidgame = phase === 'midgame_theme_select'
+  const isSecondHalf = roundNumber > 6
 
   const selectedBookCard = isBooking && pendingAction && 'card' in pendingAction
     ? (pendingAction as { card: VendorCard | VenueCard | null }).card
@@ -39,7 +51,6 @@ export function PlayerBoard({ playerId }: Props) {
     ? (pendingAction as { type: 'swap'; replacePosition: GridPosition | null }).replacePosition
     : null
 
-  // Correct per-player turn counter
   const p1TurnsTaken = Math.ceil((turnNumber - 1) / 2)
   const p2TurnsTaken = Math.floor((turnNumber - 1) / 2)
   const turnsTaken = playerId === 1 ? p1TurnsTaken : p2TurnsTaken
@@ -76,7 +87,7 @@ export function PlayerBoard({ playerId }: Props) {
         <span className={styles.playerLabel}>Player {playerId}</span>
         <span className={styles.coins}>💰 {player.coins}</span>
         <span className={styles.turns}>{turnsRemaining} turns left</span>
-        {isActive && <span className={styles.activeBadge}>Active</span>}
+        {isActive && !isBonusPhase && <span className={styles.activeBadge}>Active</span>}
         {isBonusPhase && (
           <button className={styles.skipBtn} onClick={skipBonus}>Skip Bonus</button>
         )}
@@ -84,7 +95,20 @@ export function PlayerBoard({ playerId }: Props) {
 
       <IconBar counts={counts} />
 
-      <ThemeDisplay player={player} />
+      {/* Above-grid area: changes based on game state */}
+      {isMidgame && (
+        <ThemeSelectPanel
+          player={player}
+          playerId={playerId}
+          onSelect={(theme) => selectTheme(playerId, theme)}
+        />
+      )}
+      {!isMidgame && isSecondHalf && player.chosenTheme && (
+        <ScoreArea player={player} />
+      )}
+      {!isMidgame && !isSecondHalf && (
+        <ThemeDisplay player={player} />
+      )}
 
       <div className={styles.grid}>
         {POSITIONS.map((pos) => {
@@ -160,17 +184,6 @@ export function PlayerBoard({ playerId }: Props) {
             </div>
           </div>
         )}
-
-        {player.goals.length > 0 && (
-          <div className={styles.stagingSection}>
-            <span className={styles.sectionLabel}>Goals ({player.goals.length})</span>
-            <div className={styles.stagingCards}>
-              {player.goals.map((card) => (
-                <CardView key={card.id} card={card} compact />
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )
@@ -179,14 +192,10 @@ export function PlayerBoard({ playerId }: Props) {
 function ThemeDisplay({ player }: { player: PlayerState }) {
   if (!player.themeCard) return null
   const { front, back } = player.themeCard
-
   return (
     <div className={styles.themeDisplay}>
       {[front, back].map((theme) => (
-        <div
-          key={theme.id}
-          className={`${styles.theme} ${player.chosenTheme?.id === theme.id ? styles.chosenTheme : ''}`}
-        >
+        <div key={theme.id} className={`${styles.theme} ${player.chosenTheme?.id === theme.id ? styles.chosenTheme : ''}`}>
           <span className={styles.themeName}>{theme.name}</span>
           <div className={styles.themeIcons}>
             {theme.icons.map((ic, i) => (
@@ -198,6 +207,80 @@ function ThemeDisplay({ player }: { player: PlayerState }) {
           </div>
         </div>
       ))}
+    </div>
+  )
+}
+
+function ThemeSelectPanel({
+  player,
+  playerId,
+  onSelect,
+}: {
+  player: PlayerState
+  playerId: 1 | 2
+  onSelect: (theme: Theme) => void
+}) {
+  if (!player.themeCard) return null
+
+  if (player.chosenTheme) {
+    return (
+      <div className={styles.themeCommitted}>
+        <span className={styles.committedLabel}>Theme locked:</span>
+        <strong>{player.chosenTheme.name}</strong>
+        <span className={styles.themeIconRow}>
+          {player.chosenTheme.icons.map((ic, i) => (
+            <span key={i} className={styles.themeIconRow}>
+              <IconChip icon={ic} size="sm" />
+              <span className={styles.themeIconName}>{ICON_NAMES[ic]}</span>
+            </span>
+          ))}
+        </span>
+      </div>
+    )
+  }
+
+  return (
+    <div className={styles.themeSelectPanel}>
+      <div className={styles.themeSelectPrompt}>Player {playerId}: choose your theme</div>
+      <div className={styles.themeDisplay}>
+        {[player.themeCard.front, player.themeCard.back].map((theme) => (
+          <button key={theme.id} className={`${styles.theme} ${styles.themeBtn}`} onClick={() => onSelect(theme)}>
+            <span className={styles.themeName}>{theme.name}</span>
+            <div className={styles.themeIcons}>
+              {theme.icons.map((ic, i) => (
+                <span key={i} className={styles.themeIconRow}>
+                  <IconChip icon={ic} size="sm" />
+                  <span className={styles.themeIconName} style={{ color: ICON_COLORS[ic] }}>{ICON_NAMES[ic]}</span>
+                </span>
+              ))}
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ScoreArea({ player }: { player: PlayerState }) {
+  const theme = player.chosenTheme!
+  return (
+    <div className={styles.scoreArea}>
+      <div className={styles.scoreTheme}>
+        <span className={styles.scoreThemeName}>{theme.name}</span>
+        {theme.icons.map((ic, i) => <IconChip key={i} icon={ic} size="sm" />)}
+      </div>
+      <div className={styles.rubric}>
+        {THEME_RUBRIC.map((r) => (
+          <span key={r.name} className={styles.rubricPill}>{r.name} {r.pts}</span>
+        ))}
+      </div>
+      {player.scoringCards.length > 0 && (
+        <div className={styles.scoringCards}>
+          {player.scoringCards.map((sc) => (
+            <CardView key={sc.id} card={sc} compact />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

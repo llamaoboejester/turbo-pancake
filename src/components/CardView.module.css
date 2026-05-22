@@ -24,9 +24,9 @@
 .card.selected { border-color: #4a7aff; box-shadow: 0 0 0 2px #4a7aff44; }
 .card.disabled { opacity: 0.4; }
 
-.vendor { border-top: 3px solid #4a7aff; }
-.venue  { border-top: 3px solid var(--c-accent); }
-.goal   { border-top: 3px solid var(--c-coin); }
+.vendor  { border-top: 3px solid #4a7aff; }
+.venue   { border-top: 3px solid var(--c-accent); }
+.scoring { border-top: 3px solid var(--c-coin); }
 
 .header {
   display: flex;
@@ -68,4 +68,12 @@
   color: var(--c-text-muted);
   line-height: 1.4;
   flex: 1;
+}
+
+.scoringBack {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--c-text-muted);
 }

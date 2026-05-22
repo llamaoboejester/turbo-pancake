@@ -1,6 +1,6 @@
-import type { AnyCard, VendorCard, VenueCard, GoalCard } from '../types'
+import type { AnyCard, VendorCard, VenueCard, ScoringCard } from '../types'
 import { IconChip } from './IconChip'
-import { CATEGORY_LABELS, GOAL_RULE_TEXT } from '../constants'
+import { CATEGORY_LABELS } from '../constants'
 import styles from './CardView.module.css'
 
 interface Props {
@@ -21,7 +21,7 @@ export function CardView({ card, selected, disabled, onClick, compact }: Props) 
     compact ? styles.compact : '',
   ].join(' ')
 
-  if (card.type === 'goal') return <GoalCardView card={card} cls={cls} onClick={onClick} />
+  if (card.type === 'scoring') return <ScoringCardView card={card} cls={cls} onClick={onClick} compact={compact} />
 
   return (
     <div className={cls} onClick={disabled ? undefined : onClick}>
@@ -44,14 +44,19 @@ export function CardView({ card, selected, disabled, onClick, compact }: Props) 
   )
 }
 
-function GoalCardView({ card, cls, onClick }: { card: GoalCard; cls: string; onClick?: () => void }) {
+function ScoringCardView({ card, cls, onClick, compact }: { card: ScoringCard; cls: string; onClick?: () => void; compact?: boolean }) {
   return (
     <div className={cls} onClick={onClick}>
       <div className={styles.header}>
         <span className={styles.name}>{card.name}</span>
-        <span className={styles.category}>Goal</span>
+        <span className={styles.category}>{CATEGORY_LABELS[card.category]}</span>
       </div>
-      <div className={styles.goalText}>{GOAL_RULE_TEXT[card.id] ?? ''}</div>
+      <div className={styles.goalText}>{card.frontFormula}</div>
+      {!compact && (
+        <div className={styles.scoringBack}>
+          Back: <IconChip icon={card.backIcon} size="sm" />
+        </div>
+      )}
     </div>
   )
 }

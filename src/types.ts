@@ -11,10 +11,6 @@ export type VendorCategory =
   | 'stationery'
   | 'transportation'
 
-export type GoalType = 'guest' | 'budget' | 'excitement' | 'theme'
-
-export type ThemeSubtype = 'subtle' | 'matched' | 'thematic' | 'balanced' | 'unforgettable'
-
 export interface VendorCard {
   id: string
   type: 'vendor'
@@ -34,15 +30,13 @@ export interface VenueCard {
   icons: Icon[]
 }
 
-export interface GoalCard {
+export interface ScoringCard {
   id: string
-  type: 'goal'
+  type: 'scoring'
   name: string
-  goalType: GoalType
-  category?: VendorCategory
-  targetCost?: number
-  targetExcitement?: number
-  themeSubtype?: ThemeSubtype
+  category: VendorCategory
+  frontFormula: string
+  backIcon: Icon
 }
 
 export interface Theme {
@@ -57,7 +51,7 @@ export interface ThemeCard {
   back: Theme
 }
 
-export type AnyCard = VendorCard | VenueCard | GoalCard
+export type AnyCard = VendorCard | VenueCard | ScoringCard
 
 export type GridPosition = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
@@ -75,8 +69,6 @@ export const GRID_BONUSES: Record<GridPosition, GridBonus> = {
   9: 'draw2',
 }
 
-export type GridCell = { card: VendorCard | VenueCard; bonus: GridBonus } | { card: null; bonus: GridBonus }
-
 export type PlayerGrid = Record<GridPosition, VendorCard | VenueCard | null>
 
 export interface PlayerState {
@@ -85,19 +77,17 @@ export interface PlayerState {
   grid: PlayerGrid
   stagingVendors: VendorCard[]
   stagingVenues: VenueCard[]
-  goals: GoalCard[]
+  scoringCards: ScoringCard[]
   themeCard: ThemeCard | null
   chosenTheme: Theme | null
 }
 
-export type MarketType = 'vendor' | 'venue' | 'goal'
+export type MarketType = 'vendor' | 'venue' | 'scoring'
 
 export interface Market {
   visible: (AnyCard | null)[]
   deck: AnyCard[]
 }
-
-export type ActionType = 'take2' | 'gain3coins' | 'book' | 'swap'
 
 export type GamePhase =
   | 'setup'
@@ -107,7 +97,8 @@ export type GamePhase =
   | 'swapping'
   | 'bonus_draw2'
   | 'bonus_book'
-  | 'endgame_theme_select'
+  | 'venue_bonus_take'
+  | 'midgame_theme_select'
   | 'endgame_scoring'
 
 export interface GameState {
@@ -116,7 +107,7 @@ export interface GameState {
   turnNumber: number
   roundNumber: number
   players: { 1: PlayerState; 2: PlayerState }
-  markets: { vendor: Market; venue: Market; goal: Market }
+  markets: { vendor: Market; venue: Market; scoring: Market }
   pendingAction: PendingAction | null
   bonusBookDepth: number
 }
@@ -127,3 +118,4 @@ export type PendingAction =
   | { type: 'swap'; replacePosition: GridPosition | null }
   | { type: 'bonus_draw2'; taken: AnyCard[] }
   | { type: 'bonus_book'; card: VendorCard | VenueCard | null }
+  | { type: 'venue_bonus_take'; taken: AnyCard[] }
