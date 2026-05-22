@@ -1,0 +1,145 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  min-height: 100%;
+  background: var(--c-bg);
+  overflow-y: auto;
+}
+
+.banner {
+  text-align: center;
+  padding: 12px 0 4px;
+}
+
+.title { font-size: 1.6rem; font-weight: 800; }
+
+.winner {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--c-coin);
+  margin-top: 8px;
+}
+
+.scoreCards {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.scoreCard {
+  flex: 1;
+  min-width: 300px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.scoreHeader {
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--c-border);
+  padding-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.totalBadge {
+  margin-left: auto;
+  background: #f5c51822;
+  color: var(--c-coin);
+  border: 1px solid #f5c51844;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 13px;
+}
+
+.invalid { color: var(--c-accent); }
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--c-text-muted);
+  margin-top: 4px;
+}
+
+.line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+.line span:last-child { color: var(--c-text); font-weight: 600; }
+
+.missed { opacity: 0.35; }
+
+.scoringCardRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.flipBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  flex: 1;
+  text-align: left;
+}
+
+.flipBtn:hover { border-color: #4a7aff; }
+
+.flipName { font-weight: 600; color: var(--c-text); }
+
+.flipSide {
+  color: var(--c-text-muted);
+  font-size: 11px;
+  margin-left: auto;
+}
+
+.cardPoints {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text);
+  min-width: 50px;
+  text-align: right;
+}
+
+.backSide {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.backLabel {
+  font-size: 12px;
+  color: var(--c-text-muted);
+  font-weight: normal;
+}
+
+.total {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--c-coin);
+  border-top: 1px solid var(--c-border);
+  padding-top: 8px;
+  text-align: right;
+  margin-top: 4px;
+}

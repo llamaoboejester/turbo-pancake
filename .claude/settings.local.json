@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(npm create *)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(git rm *)",
+      "Bash(ping -n 3 127.0.0.1)",
+      "Bash(curl -s -o nul -w \"%{http_code}\" http://localhost:5173)",
+      "Bash(npx vite *)"
+    ]
+  }
+}

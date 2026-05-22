@@ -1,0 +1,364 @@
+.board {
+  flex: 1;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  opacity: 0.75;
+  transition: opacity 0.2s;
+}
+
+.board.active { opacity: 1; border-color: #4a7aff66; }
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.playerLabel { font-weight: 700; font-size: 15px; }
+.coins { color: var(--c-coin); font-weight: 600; }
+.turns { color: var(--c-text-muted); font-size: 12px; }
+
+.activeBadge {
+  margin-left: auto;
+  background: #4a7aff22;
+  color: #4a7aff;
+  border: 1px solid #4a7aff44;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.skipBtn {
+  margin-left: auto;
+  background: #f5c51822;
+  color: var(--c-coin);
+  border: 1px solid var(--c-coin);
+  border-radius: 4px;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.skipBtn:hover { background: #f5c51844; }
+
+.infoRow {
+  display: flex;
+  gap: 75px;
+  align-items: flex-start;
+}
+
+.infoPanel {
+  flex: 1;
+  min-width: 0;
+}
+
+.themeSelectPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.themeSelectPrompt {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--c-coin);
+}
+
+.themeBtn {
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.1s;
+}
+
+.themeBtn:hover {
+  border-color: var(--c-coin);
+  background: #f5c51811;
+}
+
+.themeCommitted {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f5c51811;
+  border: 1px solid var(--c-coin);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.committedLabel {
+  font-size: 11px;
+  color: var(--c-text-muted);
+  font-weight: 600;
+}
+
+.themeDisplay {
+  display: flex;
+  gap: 8px;
+}
+
+.theme {
+  flex: 1;
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.theme.chosenTheme {
+  border-color: var(--c-coin);
+  background: #f5c51811;
+}
+
+.themeName {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.themeIcons {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.themeIconRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.themeIconName {
+  font-size: 11px;
+  color: var(--c-text-muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.cell {
+  background: var(--c-bg);
+  border: 1px dashed var(--c-border);
+  border-radius: 6px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.cell.canBook {
+  border-color: #4a7aff;
+  border-style: solid;
+  cursor: pointer;
+  background: #4a7aff11;
+}
+
+.cell.canBook:hover { background: #4a7aff22; }
+
+.cell.filled { border-style: solid; border-color: var(--c-border); }
+
+.bonusLabel {
+  font-size: 11px;
+  color: var(--c-text-muted);
+  text-align: center;
+}
+
+.scoreArea {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #f5c51808;
+  border: 1px solid var(--c-coin);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.scoreTheme {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scoreThemeName {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.rubric {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.rubricPill {
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 10px;
+  color: var(--c-text-muted);
+}
+
+.rubricActive {
+  background: #4a7aff22;
+  border-color: #4a7aff88;
+  color: #4a7aff;
+  font-weight: 700;
+}
+
+.rubricBonus {
+  background: #f5c51822;
+  border-color: var(--c-coin);
+  color: var(--c-coin);
+  font-weight: 700;
+}
+
+.rubricTotal {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-coin);
+}
+
+.scoringCards {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--c-border);
+}
+
+.scoringCardItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.scoringCardName {
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.scoringCardSide {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--c-text-muted);
+}
+
+.flipPanel {
+  background: #4a7aff11;
+  border: 1px solid #4a7aff44;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flipPanelTitle {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #4a7aff;
+}
+
+.flipPanelName {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.flipOptions {
+  display: flex;
+  gap: 8px;
+}
+
+.flipOption {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.1s;
+}
+
+.flipFront:hover { border-color: #4a7aff; background: #4a7aff11; }
+
+.flipBack:hover { border-color: var(--c-coin); background: #f5c51811; }
+
+.flipOptionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--c-text-muted);
+}
+
+.flipOptionDesc {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.staging { display: flex; flex-direction: column; gap: 8px; }
+
+.stagingSection { display: flex; flex-direction: column; gap: 4px; }
+
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--c-text-muted);
+}
+
+.stagingCards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.stagingCard { position: relative; }
+
+.discardBtn {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  color: #fff;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  line-height: 1;
+}
